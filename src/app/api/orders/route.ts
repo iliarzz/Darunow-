@@ -3,13 +3,18 @@ import { PaymentType, SubstitutionPref } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession, getSessionUser } from "@/lib/auth";
 import { mapOrderToDto } from "@/lib/server-mappers";
+import { ensureDeliveryForOrder } from "@/lib/delivery/service";
+import { withApiContext } from "@/observability/api";
+import { logEvent } from "@/observability/logger";
+import { setActorContext, setOrderContext } from "@/observability/requestContext";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
+export const GET = withApiContext(async (req: NextRequest) => {
   const admin = await getAdminSession(req);
   if (admin) {
+    setActorContext("admin", admin.session.userId);
     const orders = await prisma.order.findMany({
       orderBy: { createdAt: "desc" },
       include: { orderItems: true },
@@ -28,22 +33,25 @@ export async function GET(req: NextRequest) {
   }
   const user = await getSessionUser(req);
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  setActorContext("user", user.id);
   const orders = await prisma.order.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     include: { orderItems: true },
   });
   return NextResponse.json(orders.map(mapOrderToDto));
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withApiContext(async (req: NextRequest) => {
   const user = await getSessionUser(req);
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  setActorContext("user", user.id);
   const body = await req.json().catch(() => ({}));
   if (!Array.isArray(body.items) || body.items.length === 0) {
     return NextResponse.json({ error: "items required" }, { status: 400 });
   }
   if (!body.pharmacyId) return NextResponse.json({ error: "pharmacyId required" }, { status: 400 });
+  if (!body.addressId) return NextResponse.json({ error: "addressId required" }, { status: 400 });
   const subtotal = Number(body.subtotal ?? 0);
   const deliveryFee = Number(body.deliveryFee ?? 0);
   const discount = Number(body.discount ?? 0);
@@ -79,5 +87,20 @@ export async function POST(req: NextRequest) {
     },
     include: { orderItems: true },
   });
+  setOrderContext(order.id);
+  await ensureDeliveryForOrder({
+    orderId: order.id,
+    pickupPharmacyId: order.pharmacyId,
+    dropoffAddressId: order.addressId,
+    etaMin: body.etaMin ?? null,
+    etaMax: body.etaMax ?? null,
+    distanceKm: body.distanceKm ?? null,
+  });
+  logEvent("orders.created", {
+    orderId: order.id,
+    pharmacyId: order.pharmacyId,
+    itemsCount: order.orderItems.length,
+    paymentType: order.paymentType,
+  });
   return NextResponse.json(mapOrderToDto(order), { status: 201 });
-}
+});

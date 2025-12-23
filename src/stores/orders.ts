@@ -13,10 +13,12 @@ const statusEnum = z.enum([
   "created",
   "rx_received",
   "rx_review",
+  "approved",
   "preparing",
   "shipped",
   "delivered",
   "cancelled",
+  "refund_requested",
   "refunding",
   "refunded",
 ]);

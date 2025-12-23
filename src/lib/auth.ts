@@ -23,6 +23,14 @@ type AdminSession = {
   exp: number;
 };
 
+type ProviderSession = {
+  actor: "provider";
+  orgId: string;
+  providerUserId: string;
+  role: string;
+  exp: number;
+};
+
 const SESSION_TTL_HOURS = 24 * 7;
 
 function getSecret(): string {
@@ -174,4 +182,66 @@ export async function getAdminSessionFromCookie(token?: string | null) {
   const user = await prisma.adminUser.findUnique({ where: { id: payload.userId } });
   if (!user || user.role !== payload.role) return null;
   return { session: payload, user };
+}
+
+export function signProviderSession(payload: Omit<ProviderSession, "exp" | "actor">): string {
+  const exp = Date.now() + SESSION_TTL_HOURS * 60 * 60 * 1000;
+  const body: ProviderSession = { ...payload, actor: "provider", exp };
+  const encoded = Buffer.from(JSON.stringify(body)).toString("base64url");
+  const sig = createHmac("sha256", getSecret()).update(encoded).digest("base64url");
+  return `${encoded}.${sig}`;
+}
+
+export function verifyProviderSession(token?: string | null): ProviderSession | null {
+  if (!token) return null;
+  const [encoded, sig] = token.split(".");
+  if (!encoded || !sig) return null;
+  const expected = createHmac("sha256", getSecret()).update(encoded).digest("base64url");
+  if (expected !== sig) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as ProviderSession;
+    if (payload.actor !== "provider") return null;
+    if (Date.now() > payload.exp) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+export function extractProviderToken(req: NextRequest): string | null {
+  const header = req.headers.get("authorization");
+  if (header?.startsWith("Provider ")) {
+    return header.slice("Provider ".length);
+  }
+  const cookieToken = req.cookies.get("provider_session")?.value;
+  return cookieToken ?? null;
+}
+
+export async function getProviderSession(req: NextRequest) {
+  const token = extractProviderToken(req);
+  const payload = verifyProviderSession(token);
+  if (!payload) return null;
+  const providerUser = await prisma.providerUser.findUnique({
+    where: { id: payload.providerUserId },
+    include: { org: true },
+  });
+  if (!providerUser || providerUser.orgId !== payload.orgId || providerUser.role !== payload.role) return null;
+  return { session: payload, user: providerUser };
+}
+
+export async function getProviderSessionFromCookie(token?: string | null) {
+  const payload = verifyProviderSession(token ?? undefined);
+  if (!payload) return null;
+  const providerUser = await prisma.providerUser.findUnique({
+    where: { id: payload.providerUserId },
+    include: { org: true },
+  });
+  if (!providerUser || providerUser.orgId !== payload.orgId || providerUser.role !== payload.role) return null;
+  return { session: payload, user: providerUser };
+}
+
+export async function requireProvider(req: NextRequest) {
+  const session = await getProviderSession(req);
+  if (!session) throw new Error("unauthorized");
+  return session;
 }

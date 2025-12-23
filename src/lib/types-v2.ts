@@ -85,6 +85,47 @@ export type Order = {
   timeline: { status: OrderStatus; at: number }[];
 };
 
+export type DeliveryStatusV2 =
+  | "unassigned"
+  | "offered"
+  | "accepted"
+  | "picked_up"
+  | "enroute"
+  | "arrived"
+  | "delivered"
+  | "failed"
+  | "cancelled";
+
+export type DeliveryEvent = {
+  type: "assigned" | "accepted" | "picked_up" | "location" | "arrived" | "delivered" | "failed" | "note";
+  at: number;
+  meta?: Record<string, unknown>;
+};
+
+export type DeliveryLocationPing = {
+  courierId: string;
+  lat: number;
+  lng: number;
+  speed?: number | null;
+  heading?: number | null;
+  accuracy?: number | null;
+  at: number;
+};
+
+export type DeliverySummary = {
+  id: string;
+  orderId: string;
+  courierId?: string | null;
+  status: DeliveryStatusV2;
+  pickupPharmacyId: string;
+  dropoffAddressId: string;
+  etaMin?: number | null;
+  etaMax?: number | null;
+  distanceKm?: number | null;
+  events: DeliveryEvent[];
+  lastPing?: DeliveryLocationPing;
+};
+
 export type TicketStatus = "open" | "answered" | "closed";
 
 export type Ticket = {

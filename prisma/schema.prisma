@@ -50,6 +50,12 @@ enum PrescriptionStatus {
   review
   needs_fix
   approved
+  draft
+  signed
+  sent
+  dispensed
+  closed
+  void
 }
 
 enum SubstitutionStatus {
@@ -61,6 +67,7 @@ enum SubstitutionStatus {
 enum AuditActor {
   user
   pharmacy
+  provider
   admin
 }
 
@@ -71,24 +78,353 @@ enum AdminRole {
   finance
 }
 
+enum InventoryStatus {
+  in_stock
+  low
+  out
+}
+
+enum PromoType {
+  percent
+  fixed
+}
+
+enum EligibilityStatus {
+  eligible
+  ineligible
+  unknown
+}
+
+enum ProviderOrgType {
+  clinic
+  hospital
+  practice
+}
+
+enum ProviderRole {
+  doctor
+  staff
+  admin
+}
+
+enum SeverityLevel {
+  mild
+  moderate
+  severe
+}
+
+enum ClaimStatus {
+  draft
+  submitted
+  approved
+  rejected
+  paid
+}
+
+enum ConversationStatus {
+  open
+  closed
+}
+
+enum MessageSenderType {
+  user
+  provider
+}
+
+enum MessageType {
+  text
+  file
+  system
+}
+
+enum ReaderType {
+  user
+  provider
+}
+
+enum AttachmentOwnerType {
+  user
+  provider
+}
+
+enum TeleVisitStatus {
+  scheduled
+  waiting
+  in_call
+  ended
+  no_show
+  cancelled
+}
+
+enum TeleVisitEventType {
+  created
+  user_joined
+  provider_joined
+  ended
+  failed
+  note
+}
+
+enum RoomProvider {
+  daily
+  twilio
+  webrtc_stub
+}
+
+enum InvoiceCurrency {
+  IRR
+  USD
+}
+
+enum InvoiceStatus {
+  draft
+  pending
+  paid
+  failed
+  refunded
+}
+
+enum PaymentProvider {
+  mock
+  zarinpal
+  stripe_like
+}
+
+enum PaymentStatus {
+  created
+  authorized
+  captured
+  failed
+}
+
+enum CareProgramCreator {
+  ops
+  provider
+}
+
+enum CareMetricValueType {
+  number
+  text
+  enum
+}
+
+enum CareQuestionCadence {
+  daily
+  weekly
+  custom
+}
+
+enum CareQuestionType {
+  scale
+  yesno
+  text
+  number
+  enum
+}
+
+enum EnrollmentStatus {
+  active
+  paused
+  completed
+  cancelled
+}
+
+enum CareTaskType {
+  med
+  lab
+  visit
+  lifestyle
+  other
+}
+
+enum CareTaskCadence {
+  once
+  daily
+  weekly
+}
+
+enum CareTaskStatus {
+  open
+  done
+  skipped
+}
+
+enum CareTaskCreator {
+  provider
+  ops
+  user
+}
+
+enum CareObservationSource {
+  manual
+  device
+  import
+}
+
+enum CareAlertSeverity {
+  low
+  medium
+  high
+}
+
+enum CareAlertType {
+  threshold
+  missing_checkin
+  free_text_flag
+  manual
+}
+
+enum CareAlertStatus {
+  open
+  acknowledged
+  closed
+}
+
+enum AlertAssigneeType {
+  provider
+  support
+  ops
+}
+
+enum CareTeamMemberType {
+  provider
+  support
+}
+
+enum CareTeamRole {
+  lead
+  assistant
+  coach
+}
+
+enum CareTaskEventType {
+  created
+  done
+  skipped
+  edited
+}
+
+enum LabOrderStatus {
+  created
+  received
+  processing
+  ready
+  delivered
+  cancelled
+}
+
+enum LabUserRole {
+  tech
+  admin
+}
+
+enum LabPriority {
+  routine
+  stat
+}
+
+enum LabResultType {
+  pdf
+  structured
+}
+
+enum ObservationFlag {
+  high
+  low
+  normal
+  unknown
+}
+
+enum LabResultShareGrantee {
+  provider
+  pharmacy
+}
+
+enum OrgType {
+  provider
+  clinic
+  lab
+}
+
+enum AppointmentStatus {
+  requested
+  confirmed
+  cancelled
+  completed
+  no_show
+}
+
+enum AppointmentReminderChannel {
+  in_app
+  push
+}
+
+enum CourierStatus {
+  offline
+  online
+  busy
+}
+
+enum DeliveryStatus {
+  unassigned
+  offered
+  accepted
+  picked_up
+  enroute
+  arrived
+  delivered
+  failed
+  cancelled
+}
+
+enum DeliveryEventType {
+  assigned
+  accepted
+  picked_up
+  location
+  arrived
+  delivered
+  failed
+  note
+}
+
+enum ProofMethod {
+  otp
+  qr
+  signature
+  photo
+}
+
 model User {
-  id        String    @id @default(cuid())
-  phone     String    @unique
-  name      String?
-  createdAt DateTime  @default(now())
-  addresses Address[]
-  orders    Order[]
-  tickets   Ticket[]
-  favorites Favorite[]
-  ratings   Rating[]
+  id            String         @id @default(cuid())
+  phone         String         @unique
+  name          String?
+  createdAt     DateTime       @default(now())
+  addresses     Address[]
+  orders        Order[]
+  tickets       Ticket[]
+  favorites     Favorite[]
+  ratings       Rating[]
   prescriptions Prescription[]
   notifications Notification[]
+  OrderGroup    OrderGroup[]
+  policies      InsurancePolicy[]
+  patientRecord PatientRecord?
+  claimCases    ClaimCase[]
+  labOrders     LabOrder[]
+  appointments  Appointment[]
+  labShares     LabResultShare[]
+  conversations Conversation[]
+  teleVisits    TeleVisit[]
+  invoices      Invoice[]
+  visitSummaries VisitSummary[]
+  careEnrollments Enrollment[]
 }
 
 model Address {
-  id            String   @id @default(cuid())
+  id            String     @id @default(cuid())
   userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   label         String
   recipientName String
   phone         String
@@ -97,103 +433,334 @@ model Address {
   line1         String
   line2         String?
   postalCode    String?
-  isDefault     Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  isDefault     Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deliveries    Delivery[]
 
   @@index([userId])
+}
+
+model Drug {
+  id              String          @id @default(cuid())
+  nameFa          String
+  nameEn          String?
+  genericName     String?
+  brandName       String?
+  atcCode         String?
+  isRxRequired    Boolean         @default(false)
+  descriptionLite String?
+  warningsLite    String?
+  createdAt       DateTime        @default(now())
+  synonyms        DrugSynonym[]
+  inventoryItems  InventoryItem[]
+  products        Product[]
+}
+
+model DrugSynonym {
+  id     String @id @default(cuid())
+  drugId String
+  drug   Drug   @relation(fields: [drugId], references: [id], onDelete: Cascade)
+  term   String
+
+  @@unique([drugId, term])
+  @@index([term])
+}
+
+model Courier {
+  id         String         @id @default(cuid())
+  phone      String         @unique
+  name       String?
+  status     CourierStatus  @default(offline)
+  lastSeenAt DateTime?
+  createdAt  DateTime       @default(now())
+  users      CourierUser[]
+  tokens     CourierToken[]
+  deliveries Delivery[]
+  pings      LocationPing[]
+}
+
+model CourierUser {
+  id           String   @id @default(cuid())
+  courierId    String
+  courier      Courier  @relation(fields: [courierId], references: [id], onDelete: Cascade)
+  phone        String   @unique
+  passwordHash String?
+  otpHash      String?
+  createdAt    DateTime @default(now())
+}
+
+model CourierToken {
+  id        String   @id @default(cuid())
+  courierId String
+  courier   Courier  @relation(fields: [courierId], references: [id], onDelete: Cascade)
+  tokenHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([courierId])
+  @@index([expiresAt])
 }
 
 model Pharmacy {
-  id             String     @id
-  slug           String     @unique
-  name           String
-  rating         Float      @default(0)
-  isOpen         Boolean    @default(true)
-  deliveryEtaMin Int
-  deliveryEtaMax Int
-  tags           String[]
-  addressShort   String
-  coverStyle     String?
-  city           String?
-  createdAt      DateTime   @default(now())
-  products       Product[]
-  favorites      Favorite[]
-  ratings        Rating[]
-  orders         Order[]
-  users          PharmacyUser[]
-  prescriptions  Prescription[]
+  id                    String                 @id
+  slug                  String                 @unique
+  name                  String
+  rating                Float                  @default(0)
+  isOpen                Boolean                @default(true)
+  deliveryEtaMin        Int
+  deliveryEtaMax        Int
+  tags                  String[]
+  addressShort          String
+  coverStyle            String?
+  city                  String?
+  createdAt             DateTime               @default(now())
+  products              Product[]
+  inventory             InventoryItem[]
+  coverageAreas         PharmacyCoverage[]
+  hours                 PharmacyHours[]
+  favorites             Favorite[]
+  ratings               Rating[]
+  orders                Order[]
+  users                 PharmacyUser[]
+  prescriptions         Prescription[]
   substitutionProposals SubstitutionProposal[]
+  deliveriesPickup      Delivery[]
 }
 
 model Product {
-  id          String    @id
+  id          String      @id
   pharmacyId  String
-  pharmacy    Pharmacy  @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  pharmacy    Pharmacy    @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  drugId      String?
+  drug        Drug?       @relation(fields: [drugId], references: [id])
   name        String
   subtitle    String?
   price       Int
-  inStock     Boolean   @default(true)
+  inStock     Boolean     @default(true)
   description String?
   category    String?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime    @default(now())
   orderItems  OrderItem[]
 
   @@index([pharmacyId])
+  @@index([drugId])
+}
+
+model InventoryItem {
+  id         String          @id @default(cuid())
+  pharmacyId String
+  pharmacy   Pharmacy        @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  drugId     String
+  drug       Drug            @relation(fields: [drugId], references: [id], onDelete: Cascade)
+  price      Int
+  stockQty   Int
+  status     InventoryStatus @default(in_stock)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@unique([pharmacyId, drugId])
+  @@index([drugId])
+}
+
+model PharmacyCoverage {
+  id          String   @id @default(cuid())
+  pharmacyId  String
+  pharmacy    Pharmacy @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  city        String
+  polygonJson Json?
+  radiusKm    Float?
+  centerLat   Float?
+  centerLng   Float?
+  createdAt   DateTime @default(now())
+
+  @@index([pharmacyId])
+  @@index([city])
+}
+
+model PharmacyHours {
+  id         String   @id @default(cuid())
+  pharmacyId String
+  pharmacy   Pharmacy @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  dayOfWeek  Int
+  openTime   String
+  closeTime  String
+  isClosed   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([pharmacyId, dayOfWeek])
+}
+
+model PromoRule {
+  id          String    @id @default(cuid())
+  code        String
+  type        PromoType
+  value       Int
+  minBasket   Int
+  maxDiscount Int?
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  @@unique([code])
+  @@index([isActive, expiresAt])
+}
+
+model FeeConfig {
+  id                    String   @id @default(cuid())
+  city                  String
+  baseDeliveryFee       Int
+  perKmFee              Int
+  serviceFee            Int
+  freeDeliveryMinBasket Int
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([city])
+}
+
+model Delivery {
+  id               String               @id @default(cuid())
+  orderId          String               @unique
+  order            Order                @relation("OrderDelivery", fields: [orderId], references: [id], onDelete: Cascade)
+  courierId        String?
+  courier          Courier?             @relation(fields: [courierId], references: [id])
+  status           DeliveryStatus       @default(unassigned)
+  pickupPharmacyId String
+  pickupPharmacy   Pharmacy             @relation(fields: [pickupPharmacyId], references: [id])
+  dropoffAddressId String
+  dropoffAddress   Address              @relation(fields: [dropoffAddressId], references: [id])
+  etaMin           Int?
+  etaMax           Int?
+  distanceKm       Float?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  events           DeliveryEvent[]
+  pings            LocationPing[]
+  proof            ProofOfDelivery?
+  assignments      DispatchAssignment[]
+
+  @@index([courierId, status])
+  @@index([status])
+}
+
+model DeliveryEvent {
+  id         String            @id @default(cuid())
+  deliveryId String
+  delivery   Delivery          @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  type       DeliveryEventType
+  metaJson   Json?
+  createdAt  DateTime          @default(now())
+
+  @@index([deliveryId])
+  @@index([createdAt])
+}
+
+model LocationPing {
+  id         String   @id @default(cuid())
+  deliveryId String
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  courierId  String
+  courier    Courier  @relation(fields: [courierId], references: [id], onDelete: Cascade)
+  lat        Float
+  lng        Float
+  speed      Float?
+  heading    Float?
+  accuracy   Float?
+  createdAt  DateTime @default(now())
+
+  @@index([deliveryId, createdAt])
+  @@index([courierId, createdAt])
+}
+
+model ProofOfDelivery {
+  id         String      @id @default(cuid())
+  deliveryId String      @unique
+  delivery   Delivery    @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  method     ProofMethod
+  otpLast4   String?
+  photoUrl   String?
+  signedName String?
+  createdAt  DateTime    @default(now())
+}
+
+model DispatchAssignment {
+  id                String     @id @default(cuid())
+  deliveryId        String
+  delivery          Delivery   @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  assignedByAdminId String?
+  assignedByAdmin   AdminUser? @relation(fields: [assignedByAdminId], references: [id])
+  assignedBySystem  Boolean    @default(false)
+  reason            String?
+  createdAt         DateTime   @default(now())
+
+  @@index([deliveryId])
+}
+
+model OrderGroup {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  orders    Order[]
 }
 
 model Order {
-  id               String            @id @default(cuid())
-  userId           String
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pharmacyId       String
-  pharmacy         Pharmacy          @relation(fields: [pharmacyId], references: [id])
-  status           OrderStatus
-  subtotal         Int
-  discount         Int
-  deliveryFee      Int
-  payable          Int
-  paymentType      PaymentType
-  substitutionPref SubstitutionPref
-  notes            String?
-  addressId        String?
-  deliverySlotId   String?
-  timeline         Json              @default("[]")
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  orderItems       OrderItem[]
-  ratings          Rating[]
-  tickets          Ticket[]
-  prescriptions    Prescription[]
+  id                    String                 @id @default(cuid())
+  userId                String
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderGroupId          String?
+  orderGroup            OrderGroup?            @relation(fields: [orderGroupId], references: [id])
+  pharmacyId            String
+  pharmacy              Pharmacy               @relation(fields: [pharmacyId], references: [id])
+  status                OrderStatus
+  subtotal              Int
+  discount              Int
+  deliveryFee           Int
+  payable               Int
+  paymentType           PaymentType
+  substitutionPref      SubstitutionPref
+  notes                 String?
+  addressId             String?
+  deliverySlotId        String?
+  timeline              Json                   @default("[]")
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  delivery              Delivery?              @relation("OrderDelivery")
+  orderItems            OrderItem[]
+  ratings               Rating[]
+  tickets               Ticket[]
+  prescriptions         Prescription[]
   substitutionProposals SubstitutionProposal[]
 
   @@index([userId])
   @@index([pharmacyId])
+  @@index([orderGroupId])
 }
 
 model OrderItem {
-  id        String   @id @default(cuid())
-  orderId   String
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String?
-  product   Product? @relation(fields: [productId], references: [id])
-  name      String
-  price     Int
-  qty       Int
-  subtitle  String?
+  id                    String                     @id @default(cuid())
+  orderId               String
+  order                 Order                      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId             String?
+  product               Product?                   @relation(fields: [productId], references: [id])
+  name                  String
+  price                 Int
+  qty                   Int
+  subtitle              String?
   substitutionProposals SubstitutionProposalItem[]
 }
 
 model Ticket {
-  id        String       @id @default(cuid())
+  id        String        @id @default(cuid())
   userId    String
-  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   orderId   String?
-  order     Order?       @relation(fields: [orderId], references: [id])
+  order     Order?        @relation(fields: [orderId], references: [id])
   subject   String
   message   String
-  status    TicketStatus @default(open)
-  createdAt DateTime     @default(now())
+  status    TicketStatus  @default(open)
+  createdAt DateTime      @default(now())
   replies   TicketReply[]
 
   @@index([userId])
@@ -209,28 +776,28 @@ model TicketReply {
 }
 
 model Favorite {
-  id         String    @id @default(cuid())
+  id         String   @id @default(cuid())
   userId     String
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   pharmacyId String
-  pharmacy   Pharmacy  @relation(fields: [pharmacyId], references: [id])
-  createdAt  DateTime  @default(now())
+  pharmacy   Pharmacy @relation(fields: [pharmacyId], references: [id])
+  createdAt  DateTime @default(now())
 
   @@unique([userId, pharmacyId])
   @@index([userId])
 }
 
 model Rating {
-  id         String    @id @default(cuid())
+  id         String   @id @default(cuid())
   userId     String
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   orderId    String
-  order      Order     @relation(fields: [orderId], references: [id])
+  order      Order    @relation(fields: [orderId], references: [id])
   pharmacyId String
-  pharmacy   Pharmacy  @relation(fields: [pharmacyId], references: [id])
+  pharmacy   Pharmacy @relation(fields: [pharmacyId], references: [id])
   score      Int
   note       String?
-  createdAt  DateTime  @default(now())
+  createdAt  DateTime @default(now())
 
   @@unique([orderId, userId])
   @@index([userId])
@@ -238,53 +805,847 @@ model Rating {
 }
 
 model AdminUser {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  passwordHash String?
-  role         AdminRole
-  createdAt    DateTime  @default(now())
+  id                 String               @id @default(cuid())
+  email              String               @unique
+  passwordHash       String?
+  role               AdminRole
+  createdAt          DateTime             @default(now())
+  DispatchAssignment DispatchAssignment[]
+  createdLabOrders   LabOrder[]
 }
 
 model PharmacyUser {
-  id          String    @id @default(cuid())
-  pharmacyId  String
-  pharmacy    Pharmacy  @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
-  email       String?
-  phone       String?
+  id           String   @id @default(cuid())
+  pharmacyId   String
+  pharmacy     Pharmacy @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  email        String?
+  phone        String?
   passwordHash String?
-  role        String
-  createdAt   DateTime  @default(now())
+  role         String
+  createdAt    DateTime @default(now())
 
   @@index([pharmacyId])
 }
 
-model Prescription {
+model InsuranceProvider {
+  id        String   @id @default(cuid())
+  name      String
+  country   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  policies  InsurancePolicy[]
+}
+
+model InsurancePolicy {
   id         String            @id @default(cuid())
   userId     String
   user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orderId    String?
-  order      Order?            @relation(fields: [orderId], references: [id])
-  pharmacyId String?
-  pharmacy   Pharmacy?         @relation(fields: [pharmacyId], references: [id])
-  fileUrl    String?
-  fileType   String?
-  status     PrescriptionStatus
+  providerId String
+  provider   InsuranceProvider @relation(fields: [providerId], references: [id])
+  memberId   String
+  planName   String?
+  validFrom  DateTime?
+  validTo    DateTime?
   createdAt  DateTime          @default(now())
+  checks     EligibilityCheck[]
+  claims     ClaimCase[]
+
+  @@index([userId])
+  @@index([providerId])
+}
+
+model EligibilityCheck {
+  id                  String            @id @default(cuid())
+  policyId            String
+  policy              InsurancePolicy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  status              EligibilityStatus
+  checkedAt           DateTime          @default(now())
+  rawMetaJsonRedacted Json?
+
+  @@index([policyId, checkedAt])
+}
+
+model ProviderOrg {
+  id        String          @id @default(cuid())
+  name      String
+  type      ProviderOrgType
+  createdAt DateTime         @default(now())
+  users     ProviderUser[]
+  conversations Conversation[]
+  teleVisits  TeleVisit[]
+  invoices    Invoice[]
+}
+
+model ProviderUser {
+  id                 String             @id @default(cuid())
+  orgId              String
+  org                ProviderOrg        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name               String
+  phone              String?
+  email              String?
+  role               ProviderRole
+  authHash           String?
+  otpCode            String?
+  createdAt          DateTime           @default(now())
+  profile            ProviderProfile?
+  signatures         PrescriptionSignature[]
+  prescriptions      Prescription[]     @relation("PrescriptionCreatedBy")
+  labOrders          LabOrder[]
+  conversations      Conversation[]
+  teleVisits         TeleVisit[]
+  providerNotes      ProviderNote[]
+  visitSummaries     VisitSummary[]
+  careTeamMemberships CareTeamMember[]
+
+  @@index([orgId])
+  @@index([email])
+  @@index([phone])
+}
+
+model ProviderProfile {
+  id             String       @id @default(cuid())
+  providerUserId String       @unique
+  providerUser   ProviderUser @relation(fields: [providerUserId], references: [id], onDelete: Cascade)
+  specialty      String?
+  licenseNumber  String?
+  city           String?
+  isVerified     Boolean      @default(false)
+}
+
+model Prescription {
+  id                 String             @id @default(cuid())
+  userId             String
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId            String?
+  order              Order?             @relation(fields: [orderId], references: [id])
+  pharmacyId         String?
+  pharmacy           Pharmacy?          @relation(fields: [pharmacyId], references: [id])
+  createdByProviderId String?
+  createdByProvider  ProviderUser?      @relation("PrescriptionCreatedBy", fields: [createdByProviderId], references: [id], onDelete: SetNull)
+  fileUrl            String?
+  fileType           String?
+  status             PrescriptionStatus
+  notes              String?
+  signedAt           DateTime?
+  dispensedAt        DateTime?
+  closedAt           DateTime?
+  createdAt          DateTime           @default(now())
+  items              PrescriptionItem[]
+  signatures         PrescriptionSignature[]
+  claimCases         ClaimCase[]
 
   @@index([orderId])
   @@index([pharmacyId])
+  @@index([createdByProviderId])
+}
+
+model PrescriptionItem {
+  id               String        @id @default(cuid())
+  prescriptionId   String
+  prescription     Prescription  @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  drugId           String?
+  nameText         String
+  dosageText       String?
+  qty              Int
+  refills          Int?
+  instructionsText String?
+
+  @@index([prescriptionId])
+}
+
+model PrescriptionSignature {
+  id             String        @id @default(cuid())
+  prescriptionId String
+  prescription   Prescription  @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  providerId     String
+  provider       ProviderUser  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  method         String
+  signatureHash  String
+  createdAt      DateTime      @default(now())
+
+  @@index([prescriptionId])
+  @@index([providerId])
+}
+
+model PatientRecord {
+  id         String    @id @default(cuid())
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt  DateTime  @updatedAt
+  allergies  Allergy[]
+  medications ChronicMedication[]
+  conditions Condition[]
+}
+
+model Allergy {
+  id        String        @id @default(cuid())
+  recordId  String
+  record    PatientRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  nameText  String
+  severity  SeverityLevel?
+  note      String?
+  createdAt DateTime      @default(now())
+
+  @@index([recordId])
+}
+
+model ChronicMedication {
+  id         String        @id @default(cuid())
+  recordId   String
+  record     PatientRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  nameText   String
+  dosageText String?
+  note       String?
+  createdAt  DateTime      @default(now())
+
+  @@index([recordId])
+}
+
+model Condition {
+  id        String        @id @default(cuid())
+  recordId  String
+  record    PatientRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  nameText  String
+  note      String?
+  createdAt DateTime      @default(now())
+
+  @@index([recordId])
+}
+
+model Conversation {
+  id             String              @id @default(cuid())
+  userId         String
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  providerOrgId  String
+  providerOrg    ProviderOrg         @relation(fields: [providerOrgId], references: [id], onDelete: Cascade)
+  providerUserId String?
+  providerUser   ProviderUser?       @relation(fields: [providerUserId], references: [id], onDelete: SetNull)
+  appointmentId  String?
+  appointment    Appointment?        @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  status         ConversationStatus  @default(open)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  messages       Message[]
+
+  @@index([userId, updatedAt])
+}
+
+model Message {
+  id             String            @id @default(cuid())
+  conversationId String
+  conversation   Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderType     MessageSenderType
+  senderId       String
+  type           MessageType
+  text           String?
+  fileId         String?
+  file           MessageAttachment? @relation(fields: [fileId], references: [id], onDelete: SetNull)
+  createdAt      DateTime          @default(now())
+  reads          MessageRead[]
+
+  @@index([conversationId, createdAt])
+}
+
+model MessageRead {
+  id         String      @id @default(cuid())
+  messageId  String
+  message    Message     @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  readerType ReaderType
+  readerId   String
+  readAt     DateTime    @default(now())
+
+  @@index([messageId])
+}
+
+model MessageAttachment {
+  id         String              @id @default(cuid())
+  ownerType  AttachmentOwnerType
+  ownerId    String
+  fileName   String
+  mimeType   String
+  sizeBytes  Int
+  storageKey String
+  createdAt  DateTime            @default(now())
+
+  @@index([ownerType, ownerId])
+}
+
+model TeleVisit {
+  id             String           @id @default(cuid())
+  appointmentId  String           @unique
+  appointment    Appointment      @relation("AppointmentTeleVisit", fields: [appointmentId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  providerOrgId  String
+  providerOrg    ProviderOrg      @relation(fields: [providerOrgId], references: [id], onDelete: Cascade)
+  providerUserId String
+  providerUser   ProviderUser     @relation(fields: [providerUserId], references: [id], onDelete: Cascade)
+  status         TeleVisitStatus  @default(scheduled)
+  roomProvider   RoomProvider
+  roomId         String
+  roomTokenHash  String?
+  startedAt      DateTime?
+  endedAt        DateTime?
+  createdAt      DateTime         @default(now())
+  events         TeleVisitEvent[]
+  notes          ProviderNote[]
+  summaries      VisitSummary[]
+  invoices       Invoice[]
+
+  @@index([userId])
+  @@index([providerOrgId])
+  @@index([providerUserId])
+}
+
+model TeleVisitEvent {
+  id          String             @id @default(cuid())
+  teleVisitId String
+  teleVisit   TeleVisit          @relation(fields: [teleVisitId], references: [id], onDelete: Cascade)
+  type        TeleVisitEventType
+  metaJsonRedacted Json?
+  createdAt   DateTime           @default(now())
+
+  @@index([teleVisitId])
+}
+
+model ProviderNote {
+  id             String       @id @default(cuid())
+  teleVisitId    String
+  teleVisit      TeleVisit    @relation(fields: [teleVisitId], references: [id], onDelete: Cascade)
+  providerUserId String
+  providerUser   ProviderUser @relation(fields: [providerUserId], references: [id], onDelete: Cascade)
+  text           String
+  createdAt      DateTime     @default(now())
+
+  @@index([teleVisitId])
+  @@index([providerUserId])
+}
+
+model VisitSummary {
+  id         String    @id @default(cuid())
+  teleVisitId String
+  teleVisit  TeleVisit @relation(fields: [teleVisitId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text       String
+  createdAt  DateTime  @default(now())
+
+  @@index([teleVisitId])
+  @@index([userId])
+}
+
+model Invoice {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointmentId  String?
+  appointment    Appointment?     @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  teleVisitId    String?
+  teleVisit      TeleVisit?       @relation(fields: [teleVisitId], references: [id], onDelete: SetNull)
+  providerOrgId  String?
+  providerOrg    ProviderOrg?     @relation(fields: [providerOrgId], references: [id], onDelete: SetNull)
+  currency       InvoiceCurrency
+  subtotal       Int
+  discount       Int
+  tax            Int
+  total          Int
+  status         InvoiceStatus    @default(draft)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  paymentAttempts PaymentAttempt[]
+  receipts       Receipt[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model PaymentAttempt {
+  id          String          @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  provider    PaymentProvider
+  status      PaymentStatus   @default(created)
+  providerRef String?
+  createdAt   DateTime        @default(now())
+
+  @@index([invoiceId])
+}
+
+model Receipt {
+  id             String   @id @default(cuid())
+  invoiceId      String
+  invoice        Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  receiptNumber  String
+  pdfStorageKey  String?
+  createdAt      DateTime @default(now())
+
+  @@index([invoiceId])
+}
+
+model LabOrg {
+  id         String   @id @default(cuid())
+  name       String
+  city       String?
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  users      LabUser[]
+  labOrders  LabOrder[]
+}
+
+model LabUser {
+  id        String      @id @default(cuid())
+  labOrgId  String
+  labOrg    LabOrg      @relation(fields: [labOrgId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String?
+  email     String?
+  role      LabUserRole
+  authHash  String?
+  otpCode   String?
+  createdAt DateTime    @default(now())
+
+  @@index([labOrgId])
+  @@index([email])
+  @@index([phone])
+}
+
+model LabOrder {
+  id                  String         @id @default(cuid())
+  userId              String
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  labOrgId            String?
+  labOrg              LabOrg?        @relation(fields: [labOrgId], references: [id])
+  createdByProviderId String?
+  createdByProvider   ProviderUser?  @relation(fields: [createdByProviderId], references: [id])
+  createdByOpsId      String?
+  createdByOps        AdminUser?     @relation(fields: [createdByOpsId], references: [id])
+  status              LabOrderStatus @default(created)
+  scheduledAt         DateTime?
+  collectedAt         DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  items               LabOrderItem[]
+  results             LabResult[]
+  shares              LabResultShare[]
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+model LabTest {
+  id         String   @id @default(cuid())
+  code       String   @unique
+  nameFa     String
+  nameEn     String?
+  category   String?
+  sampleType String?
+  createdAt  DateTime @default(now())
+  items      LabOrderItem[]
+}
+
+model LabOrderItem {
+  id          String       @id @default(cuid())
+  labOrderId  String
+  labOrder    LabOrder     @relation(fields: [labOrderId], references: [id], onDelete: Cascade)
+  labTestId   String?
+  labTest     LabTest?     @relation(fields: [labTestId], references: [id])
+  nameText    String
+  priority    LabPriority?
+  createdAt   DateTime     @default(now())
+
+  @@index([labOrderId])
+}
+
+model LabResult {
+  id         String        @id @default(cuid())
+  labOrderId String
+  labOrder   LabOrder      @relation(fields: [labOrderId], references: [id], onDelete: Cascade)
+  type       LabResultType
+  pdfUrl     String?
+  createdAt  DateTime      @default(now())
+  observations Observation[]
+
+  @@index([labOrderId])
+}
+
+model Observation {
+  id             String           @id @default(cuid())
+  labResultId    String
+  labResult      LabResult        @relation(fields: [labResultId], references: [id], onDelete: Cascade)
+  code           String
+  nameText       String
+  valueText      String?
+  valueNumber    Float?
+  unit           String?
+  refRangeText   String?
+  flagged        ObservationFlag?
+  observedAt     DateTime
+
+  @@index([labResultId])
+}
+
+model LabResultShare {
+  id             String                 @id @default(cuid())
+  userId         String
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  granteeType    LabResultShareGrantee
+  granteeId      String
+  consentGrantId String?
+  consentGrant   ConsentGrant?          @relation(fields: [consentGrantId], references: [id])
+  expiresAt      DateTime?
+  createdAt      DateTime               @default(now())
+
+  @@index([userId])
+  @@index([granteeType, granteeId])
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  orgType     OrgType
+  orgId       String
+  nameFa      String
+  durationMin Int
+  price       Int?
+  requiresRx  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  appointments Appointment[]
+
+  @@index([orgType, orgId])
+}
+
+model AvailabilityRule {
+  id        String   @id @default(cuid())
+  orgType   OrgType
+  orgId     String
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  slotMin   Int
+  timezone  String
+  createdAt DateTime @default(now())
+
+  @@index([orgType, orgId, dayOfWeek])
+}
+
+model SlotException {
+  id        String   @id @default(cuid())
+  orgType   OrgType
+  orgId     String
+  date      DateTime
+  isClosed  Boolean
+  startTime String?
+  endTime   String?
+  createdAt DateTime @default(now())
+
+  @@index([orgType, orgId, date])
+}
+
+model Appointment {
+  id        String             @id @default(cuid())
+  userId    String
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orgType   OrgType
+  orgId     String
+  serviceId String
+  service   Service            @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  status    AppointmentStatus  @default(requested)
+  startAt   DateTime
+  endAt     DateTime
+  notes     String?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  reminders AppointmentReminder[]
+  teleVisit TeleVisit?         @relation("AppointmentTeleVisit")
+  conversations Conversation[]
+
+  @@index([userId, startAt])
+  @@index([orgType, orgId, startAt])
+}
+
+model AppointmentReminder {
+  id            String                     @id @default(cuid())
+  appointmentId String
+  appointment   Appointment                @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  channel       AppointmentReminderChannel
+  scheduledAt   DateTime
+  sentAt        DateTime?
+  createdAt     DateTime                   @default(now())
+
+  @@index([appointmentId])
+}
+
+model ConsentGrant {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  granteeType  String
+  granteeId    String
+  scopeJson    Json
+  status       String        @default("active")
+  expiresAt    DateTime?
+  createdAt    DateTime      @default(now())
+  revokedAt    DateTime?
+  accessTokens AccessToken[]
+
+  @@index([userId])
+  @@index([granteeType, granteeId])
+}
+
+model AccessToken {
+  id             String       @id @default(cuid())
+  consentGrantId String
+  consentGrant   ConsentGrant @relation(fields: [consentGrantId], references: [id], onDelete: Cascade)
+  tokenHash      String
+  expiresAt      DateTime
+  createdAt      DateTime     @default(now())
+
+  @@index([consentGrantId])
+  @@index([expiresAt])
+}
+
+model ClaimCase {
+  id             String           @id @default(cuid())
+  orderId        String?
+  order          Order?           @relation(fields: [orderId], references: [id])
+  prescriptionId String?
+  prescription   Prescription?    @relation(fields: [prescriptionId], references: [id])
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policyId       String?
+  policy         InsurancePolicy? @relation(fields: [policyId], references: [id])
+  status         ClaimStatus      @default(draft)
+  patientShare   Int?
+  insurerShare   Int?
+  metaJsonRedacted Json?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([orderId])
+  @@index([prescriptionId])
+  @@index([userId])
+  @@index([policyId])
+}
+
+model CareProgram {
+  id             String             @id @default(cuid())
+  nameFa         String
+  descriptionLite String?
+  createdByType  CareProgramCreator
+  createdById    String
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  metricTypes    CareMetricType[]
+  questionnaires CareQuestionnaire[]
+  enrollments    Enrollment[]
+}
+
+model CareMetricType {
+  id          String             @id @default(cuid())
+  programId   String
+  program     CareProgram        @relation(fields: [programId], references: [id], onDelete: Cascade)
+  code        String
+  nameFa      String
+  unit        String?
+  valueType   CareMetricValueType
+  minSafe     Float?
+  maxSafe     Float?
+  displayOrder Int
+  createdAt   DateTime           @default(now())
+  observations CareObservation[]
+
+  @@unique([programId, code])
+  @@index([programId])
+}
+
+model CareQuestionnaire {
+  id         String             @id @default(cuid())
+  programId  String
+  program    CareProgram        @relation(fields: [programId], references: [id], onDelete: Cascade)
+  nameFa     String
+  cadence    CareQuestionCadence
+  isActive   Boolean            @default(true)
+  createdAt  DateTime           @default(now())
+  questions  CareQuestion[]
+  checkins   Checkin[]
+
+  @@index([programId])
+}
+
+model CareQuestion {
+  id             String             @id @default(cuid())
+  questionnaireId String
+  questionnaire  CareQuestionnaire  @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  promptFa       String
+  type           CareQuestionType
+  enumJson       Json?
+  min            Float?
+  max            Float?
+  required       Boolean            @default(true)
+  displayOrder   Int
+  createdAt      DateTime           @default(now())
+  answers        CheckinAnswer[]
+
+  @@index([questionnaireId])
+}
+
+model Enrollment {
+  id           String            @id @default(cuid())
+  programId    String
+  program      CareProgram       @relation(fields: [programId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status       EnrollmentStatus  @default(active)
+  enrolledAt   DateTime          @default(now())
+  pausedAt     DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime          @default(now())
+  goals        EnrollmentGoal[]
+  checkins     Checkin[]
+  observations CareObservation[]
+  tasks        CareTask[]
+  alerts       CareAlert[]
+  team         CareTeamMember[]
+
+  @@index([userId, status])
+  @@index([programId])
+}
+
+model EnrollmentGoal {
+  id            String      @id @default(cuid())
+  enrollmentId  String
+  enrollment    Enrollment  @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  titleFa       String
+  targetText    String?
+  createdAt     DateTime    @default(now())
+
+  @@index([enrollmentId])
+}
+
+model Checkin {
+  id               String            @id @default(cuid())
+  enrollmentId     String
+  enrollment       Enrollment        @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  questionnaireId  String
+  questionnaire    CareQuestionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  periodStartAt    DateTime
+  periodEndAt      DateTime
+  submittedAt      DateTime?
+  createdAt        DateTime          @default(now())
+  answers          CheckinAnswer[]
+
+  @@index([enrollmentId, submittedAt])
+}
+
+model CheckinAnswer {
+  id          String         @id @default(cuid())
+  checkinId   String
+  checkin     Checkin        @relation(fields: [checkinId], references: [id], onDelete: Cascade)
+  questionId  String
+  question    CareQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  valueText   String?
+  valueNumber Float?
+  valueEnum   String?
+  createdAt   DateTime       @default(now())
+
+  @@index([checkinId])
+  @@index([questionId])
+}
+
+model CareObservation {
+  id            String               @id @default(cuid())
+  enrollmentId  String
+  enrollment    Enrollment           @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  metricTypeId  String
+  metricType    CareMetricType       @relation(fields: [metricTypeId], references: [id], onDelete: Cascade)
+  valueText     String?
+  valueNumber   Float?
+  recordedAt    DateTime
+  source        CareObservationSource
+  createdAt     DateTime             @default(now())
+
+  @@index([enrollmentId, recordedAt])
+}
+
+model CareTask {
+  id             String            @id @default(cuid())
+  enrollmentId   String
+  enrollment     Enrollment        @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  titleFa        String
+  type           CareTaskType
+  dueAt          DateTime?
+  cadence        CareTaskCadence   @default(once)
+  status         CareTaskStatus    @default(open)
+  createdByType  CareTaskCreator
+  createdById    String
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  events         CareTaskEvent[]
+
+  @@index([enrollmentId])
+  @@index([status])
+}
+
+model CareTaskEvent {
+  id        String           @id @default(cuid())
+  taskId    String
+  task      CareTask         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  type      CareTaskEventType
+  metaJsonRedacted Json?
+  createdAt DateTime         @default(now())
+
+  @@index([taskId])
+}
+
+model CareAlert {
+  id              String           @id @default(cuid())
+  enrollmentId    String
+  enrollment      Enrollment       @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  severity        CareAlertSeverity
+  type            CareAlertType
+  titleFa         String
+  bodyFa          String
+  status          CareAlertStatus  @default(open)
+  createdAt       DateTime         @default(now())
+  acknowledgedAt  DateTime?
+  closedAt        DateTime?
+  assignments     AlertAssignment[]
+
+  @@index([enrollmentId, status, createdAt])
+}
+
+model AlertAssignment {
+  id            String            @id @default(cuid())
+  alertId       String
+  alert         CareAlert         @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  assigneeType  AlertAssigneeType
+  assigneeId    String
+  createdAt     DateTime          @default(now())
+
+  @@index([alertId])
+}
+
+model CareTeamMember {
+  id          String            @id @default(cuid())
+  enrollmentId String
+  enrollment  Enrollment        @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  memberType  CareTeamMemberType
+  memberId    String
+  role        CareTeamRole
+  createdAt   DateTime          @default(now())
+
+  @@index([enrollmentId])
 }
 
 model SubstitutionProposal {
-  id         String              @id @default(cuid())
-  orderId    String
-  order      Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  pharmacyId String
-  pharmacy   Pharmacy            @relation(fields: [pharmacyId], references: [id])
-  status     SubstitutionStatus  @default(pending)
-  items      Json
-  createdAt  DateTime            @default(now())
-  respondedAt DateTime?
+  id            String                     @id @default(cuid())
+  orderId       String
+  order         Order                      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  pharmacyId    String
+  pharmacy      Pharmacy                   @relation(fields: [pharmacyId], references: [id])
+  status        SubstitutionStatus         @default(pending)
+  items         Json
+  createdAt     DateTime                   @default(now())
+  respondedAt   DateTime?
   proposalItems SubstitutionProposalItem[]
 
   @@index([orderId])
@@ -292,11 +1653,11 @@ model SubstitutionProposal {
 }
 
 model SubstitutionProposalItem {
-  id          String   @id @default(cuid())
-  proposalId  String
-  proposal    SubstitutionProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
-  orderItemId String
-  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  id           String               @id @default(cuid())
+  proposalId   String
+  proposal     SubstitutionProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  orderItemId  String
+  orderItem    OrderItem            @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
   originalName String
   proposedName String
   priceDelta   Int
@@ -318,9 +1679,9 @@ model AuditLog {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   type      String
   title     String
   body      String
@@ -329,4 +1690,14 @@ model Notification {
   createdAt DateTime  @default(now())
 
   @@index([userId])
+}
+
+model RealtimeEvent {
+  id          String   @id @default(cuid())
+  channel     String
+  eventType   String
+  payloadJson Json?
+  createdAt   DateTime @default(now())
+
+  @@index([channel, createdAt])
 }

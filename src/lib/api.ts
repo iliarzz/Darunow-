@@ -1,4 +1,4 @@
-import type { Address, Order, Ticket } from "@/lib/types-v2";
+import type { Address, DeliverySummary, Order, Ticket } from "@/lib/types-v2";
 import type { Pharmacy, Product } from "@/lib/types";
 import { mockStore } from "@/lib/mock/store";
 import { getAuth, setAuth, clearAuth } from "@/stores/auth";
@@ -105,6 +105,10 @@ export const api = {
   },
   async getOrder(id: string): Promise<Order | undefined> {
     return apiFetch<Order>(`/api/orders/${id}`);
+  },
+  async getOrderDelivery(id: string): Promise<DeliverySummary | null> {
+    const res = await apiFetch<{ delivery: DeliverySummary | null }>(`/api/orders/${id}/delivery`);
+    return res?.delivery ?? null;
   },
   async createOrder(order: any): Promise<Order> {
     return apiFetch<Order>("/api/orders", { method: "POST", body: order });
