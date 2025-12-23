@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { mapOrderToDto } from "@/lib/server-mappers";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const opsKey = process.env.OPS_ADMIN_KEY;
   const providedKey = req.headers.get("x-ops-key") ?? req.nextUrl.searchParams.get("opsKey");

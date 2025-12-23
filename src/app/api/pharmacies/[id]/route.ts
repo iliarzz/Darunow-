@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   const pharmacy = await prisma.pharmacy.findFirst({
     where: { OR: [{ id: params.id }, { slug: params.id }] },
