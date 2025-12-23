@@ -8,6 +8,21 @@ type SessionPayload = {
   exp: number;
 };
 
+type PharmacySession = {
+  actor: "pharmacy";
+  pharmacyId: string;
+  userId: string;
+  role: string;
+  exp: number;
+};
+
+type AdminSession = {
+  actor: "admin";
+  userId: string;
+  role: string;
+  exp: number;
+};
+
 const SESSION_TTL_HOURS = 24 * 7;
 
 function getSecret(): string {
@@ -59,4 +74,104 @@ export async function requireUser(req: NextRequest) {
   const user = await getSessionUser(req);
   if (!user) throw new Error("unauthorized");
   return user;
+}
+
+export function signPharmacySession(payload: Omit<PharmacySession, "exp" | "actor">): string {
+  const exp = Date.now() + SESSION_TTL_HOURS * 60 * 60 * 1000;
+  const body: PharmacySession = { ...payload, actor: "pharmacy", exp };
+  const encoded = Buffer.from(JSON.stringify(body)).toString("base64url");
+  const sig = createHmac("sha256", getSecret()).update(encoded).digest("base64url");
+  return `${encoded}.${sig}`;
+}
+
+export function verifyPharmacySession(token?: string | null): PharmacySession | null {
+  if (!token) return null;
+  const [encoded, sig] = token.split(".");
+  if (!encoded || !sig) return null;
+  const expected = createHmac("sha256", getSecret()).update(encoded).digest("base64url");
+  if (expected !== sig) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as PharmacySession;
+    if (payload.actor !== "pharmacy") return null;
+    if (Date.now() > payload.exp) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+export function extractPharmacyToken(req: NextRequest): string | null {
+  const header = req.headers.get("authorization");
+  if (header?.startsWith("Pharmacy ")) {
+    return header.slice("Pharmacy ".length);
+  }
+  const cookieToken = req.cookies.get("pharmacy_session")?.value;
+  return cookieToken ?? null;
+}
+
+export async function getPharmacySession(req: NextRequest) {
+  const token = extractPharmacyToken(req);
+  const payload = verifyPharmacySession(token);
+  if (!payload) return null;
+  const user = await prisma.pharmacyUser.findUnique({ where: { id: payload.userId } });
+  if (!user || user.pharmacyId !== payload.pharmacyId) return null;
+  return { session: payload, user };
+}
+
+export async function getPharmacySessionFromCookie(token?: string | null) {
+  const payload = verifyPharmacySession(token ?? undefined);
+  if (!payload) return null;
+  const user = await prisma.pharmacyUser.findUnique({ where: { id: payload.userId } });
+  if (!user || user.pharmacyId !== payload.pharmacyId) return null;
+  return { session: payload, user };
+}
+
+export function signAdminSession(payload: Omit<AdminSession, "exp" | "actor">): string {
+  const exp = Date.now() + SESSION_TTL_HOURS * 60 * 60 * 1000;
+  const body: AdminSession = { ...payload, actor: "admin", exp };
+  const encoded = Buffer.from(JSON.stringify(body)).toString("base64url");
+  const sig = createHmac("sha256", getSecret()).update(encoded).digest("base64url");
+  return `${encoded}.${sig}`;
+}
+
+export function verifyAdminSession(token?: string | null): AdminSession | null {
+  if (!token) return null;
+  const [encoded, sig] = token.split(".");
+  if (!encoded || !sig) return null;
+  const expected = createHmac("sha256", getSecret()).update(encoded).digest("base64url");
+  if (expected !== sig) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as AdminSession;
+    if (payload.actor !== "admin") return null;
+    if (Date.now() > payload.exp) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+export function extractAdminToken(req: NextRequest): string | null {
+  const header = req.headers.get("authorization");
+  if (header?.startsWith("Admin ")) {
+    return header.slice("Admin ".length);
+  }
+  const cookieToken = req.cookies.get("admin_session")?.value;
+  return cookieToken ?? null;
+}
+
+export async function getAdminSession(req: NextRequest) {
+  const token = extractAdminToken(req);
+  const payload = verifyAdminSession(token);
+  if (!payload) return null;
+  const user = await prisma.adminUser.findUnique({ where: { id: payload.userId } });
+  if (!user || user.role !== payload.role) return null;
+  return { session: payload, user };
+}
+
+export async function getAdminSessionFromCookie(token?: string | null) {
+  const payload = verifyAdminSession(token ?? undefined);
+  if (!payload) return null;
+  const user = await prisma.adminUser.findUnique({ where: { id: payload.userId } });
+  if (!user || user.role !== payload.role) return null;
+  return { session: payload, user };
 }

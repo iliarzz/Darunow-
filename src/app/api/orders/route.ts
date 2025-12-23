@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PaymentType, SubstitutionPref } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
+import { getAdminSession, getSessionUser } from "@/lib/auth";
 import { mapOrderToDto } from "@/lib/server-mappers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const admin = await getAdminSession(req);
+  if (admin) {
+    const orders = await prisma.order.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { orderItems: true },
+    });
+    return NextResponse.json(orders.map(mapOrderToDto));
+  }
   const opsKeyHeader = req.headers.get("x-ops-key");
   const opsQuery = req.nextUrl.searchParams.get("opsKey");
   const opsKey = process.env.OPS_ADMIN_KEY;

@@ -48,10 +48,12 @@ export type OrderStatus =
   | "created"
   | "rx_received"
   | "rx_review"
+  | "approved"
   | "preparing"
   | "shipped"
   | "delivered"
   | "cancelled"
+  | "refund_requested"
   | "refunding"
   | "refunded";
 
@@ -92,7 +94,7 @@ export type Ticket = {
   subject: string;
   message: string;
   orderId?: string;
-  replies: { at: number; from: "user" | "support"; text: string }[];
+  replies: { at: number; from: "user" | "support" | "pharmacy"; text: string }[];
 };
 
 export type PatientProfile = {

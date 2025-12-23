@@ -1,15 +1,12 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatMoney, formatOrderId } from "@/lib/format";
 import type { Order, OrderStatus } from "@/lib/types-v2";
 import { ORDER_STATUS_FLOW } from "@/constants/status";
-
-const OPS_KEY = process.env.NEXT_PUBLIC_OPS_KEY;
 
 export default function OpsOrdersPage() {
   return (
@@ -20,48 +17,38 @@ export default function OpsOrdersPage() {
 }
 
 function OrdersContent() {
-  const search = useSearchParams();
-  const keyFromUrl = search?.get("key") ?? "";
-  const keyValid = !OPS_KEY || keyFromUrl === OPS_KEY;
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const opsKeyParam = useMemo(() => (OPS_KEY ? `?opsKey=${OPS_KEY}` : keyFromUrl ? `?opsKey=${keyFromUrl}` : ""), [keyFromUrl]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!keyValid) return;
     const run = async () => {
       try {
-        const res = await fetch(`/api/orders${opsKeyParam}`);
+        const res = await fetch(`/api/orders`);
         if (!res.ok) throw new Error("failed");
         const data = await res.json();
         setOrders(data);
+        setError(null);
       } finally {
         setLoading(false);
       }
     };
     run();
-  }, [keyValid, opsKeyParam]);
+  }, []);
 
   const updateStatus = async (id: string, status: OrderStatus) => {
-    const res = await fetch(`/api/orders/${id}${opsKeyParam}`, {
+    const res = await fetch(`/api/orders/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      setError("بروزرسانی انجام نشد");
+      return;
+    }
     const updated: Order = await res.json();
     setOrders((prev) => prev.map((o) => (o.id === id ? updated : o)));
   };
-
-  if (!keyValid) {
-    return (
-      <div className="space-y-3">
-        <h1 className="text-2xl font-bold text-text">OPS / Orders</h1>
-        <p className="text-sm text-muted">Access denied. Append ?key=... to continue.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4 pb-12">
@@ -71,6 +58,7 @@ function OrdersContent() {
       </div>
 
       {loading && <p className="text-sm text-muted">در حال بارگذاری...</p>}
+      {error && <p className="text-sm text-warning">{error}</p>}
 
       <div className="space-y-3">
         {orders.map((order) => (

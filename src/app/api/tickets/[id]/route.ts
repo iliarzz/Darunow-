@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
+import { getAdminSession, getSessionUser } from "@/lib/auth";
 import { mapTicketToDto } from "@/lib/server-mappers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const admin = await getAdminSession(req);
   const opsKey = process.env.OPS_ADMIN_KEY;
   const provided = req.headers.get("x-ops-key") ?? req.nextUrl.searchParams.get("opsKey");
-  if (opsKey && provided === opsKey) {
+  if (admin || (opsKey && provided === opsKey)) {
     const ticket = await prisma.ticket.findUnique({ where: { id: params.id }, include: { replies: true } });
     if (!ticket) return NextResponse.json({ error: "not found" }, { status: 404 });
     return NextResponse.json(mapTicketToDto(ticket));
@@ -50,9 +51,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const admin = await getAdminSession(req);
   const opsKey = process.env.OPS_ADMIN_KEY;
   const provided = req.headers.get("x-ops-key") ?? req.nextUrl.searchParams.get("opsKey");
-  if (opsKey && provided !== opsKey) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!admin && opsKey && provided !== opsKey) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { status } = await req.json().catch(() => ({}));
   if (!status) return NextResponse.json({ error: "status required" }, { status: 400 });
   const ticket = await prisma.ticket.update({

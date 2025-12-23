@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FadeSlideIn } from "@/components/motion/fade-slide-in";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -37,11 +38,29 @@ export default function OrderDetail({ params }: { params: { id: string } }) {
   const [ratingOpen, setRatingOpen] = useState(false);
   const itemsTotal = order?.subtotal ?? order?.total ?? 0;
   const deliveryFee = order?.deliveryFee ?? 0;
+  const [proposals, setProposals] = useState<any[]>([]);
+  const [prescriptions, setPrescriptions] = useState<any[]>([]);
 
   useEffect(() => {
     if (!order) {
       void syncOrdersFromServer();
     }
+  }, [order]);
+
+  useEffect(() => {
+    const fetchDetail = async () => {
+      if (!order) return;
+      try {
+        const res = await fetch(`/api/orders/${order.id}`);
+        const data = await res.json();
+        if (data?.proposals) setProposals(data.proposals);
+        if (data?.prescriptions) setPrescriptions(data.prescriptions);
+      } catch {
+        setProposals([]);
+        setPrescriptions([]);
+      }
+    };
+    fetchDetail();
   }, [order]);
 
   if (!order) {
@@ -240,18 +259,120 @@ export default function OrderDetail({ params }: { params: { id: string } }) {
               <p>پرداخت: {translatePayment(order.paymentType)}</p>
               <p>جایگزینی: {translateSubstitution(order.substitution)}</p>
             </div>
+            {prescriptions.length > 0 && (
+              <div className="space-y-2 rounded-xl border border-border/60 bg-card/70 p-3 text-xs text-text/80">
+                <p className="text-sm font-semibold">نسخه</p>
+                {prescriptions.map((rx) => (
+                  <div key={rx.id} className="flex items-center justify-between gap-2 rounded-lg border border-border/50 p-2">
+                    <div>
+                      <p className="text-xs font-semibold text-text">وضعیت نسخه</p>
+                      <p className="text-[11px] text-muted">{rx.fileType || "فایل ثبت شده"}</p>
+                    </div>
+                    <Badge variant="outline">{translateRxStatus(rx.status)}</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+            {proposals.length > 0 && (
+              <div className="space-y-2 rounded-xl border border-border/60 bg-card/70 p-3 text-xs text-text/80">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold">پیشنهاد جایگزین</p>
+                  <Badge variant="outline">{translateProposalStatus(proposals[0].status)}</Badge>
+                </div>
+                {proposals.map((p) => {
+                  const items = Array.isArray(p.items) ? p.items : [];
+                  const isPending = p.status === "pending";
+                  return (
+                    <div key={p.id} className="space-y-2 rounded-lg border border-border/50 p-2">
+                      {items.length === 0 && <p className="text-xs text-muted">جزئیات پیشنهاد ثبت نشده است.</p>}
+                      {items.map((it: any, idx: number) => (
+                        <div
+                          key={idx}
+                          className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-surface-2/60 p-2"
+                        >
+                          <div className="space-y-1">
+                            <p className="text-sm font-semibold">{it.proposedName ?? it.originalName}</p>
+                            <p className="text-[11px] text-muted">اصلی: {it.originalName ?? "-"}</p>
+                          </div>
+                          <Badge variant="neutral">
+                            {it.priceDelta > 0
+                              ? `+${formatMoney(it.priceDelta)}`
+                              : it.priceDelta < 0
+                                ? formatMoney(it.priceDelta)
+                                : "بدون تغییر"}
+                          </Badge>
+                        </div>
+                      ))}
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-xs text-muted">وضعیت: {translateProposalStatus(p.status)}</span>
+                        {isPending ? (
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="secondary" onClick={() => respondSubstitution(p.id, "accepted")}>
+                              تایید
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => respondSubstitution(p.id, "rejected")}>
+                              رد
+                            </Button>
+                          </div>
+                        ) : (
+                          <Badge variant="outline">{translateProposalStatus(p.status)}</Badge>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </Card>
       </div>
       {conflictSheet}
     </div>
   );
+
+  async function respondSubstitution(id: string, decision: "accepted" | "rejected") {
+    await fetch(`/api/substitution/${id}/respond`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ decision }),
+    });
+    toast({ title: decision === "accepted" ? "تایید شد" : "رد شد" });
+    setProposals((prev) => prev.map((p) => (p.id === id ? { ...p, status: decision } : p)));
+  }
 }
 
 function translatePayment(type: PaymentMethodType | undefined) {
   if (type === "cod") return "پرداخت در محل";
   if (type === "card") return "کارت ذخیره شده";
   return "پرداخت آنلاین";
+}
+
+function translateRxStatus(status: string) {
+  switch (status) {
+    case "approved":
+      return "تایید شده";
+    case "needs_fix":
+      return "نیاز به اصلاح";
+    case "review":
+      return "در حال بررسی";
+    case "received":
+      return "دریافت شد";
+    default:
+      return status;
+  }
+}
+
+function translateProposalStatus(status: string) {
+  switch (status) {
+    case "pending":
+      return "در انتظار تایید";
+    case "accepted":
+      return "تایید شد";
+    case "rejected":
+      return "رد شد";
+    default:
+      return status;
+  }
 }
 
 function translateSubstitution(pref: string) {

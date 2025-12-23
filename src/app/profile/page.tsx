@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MapPin, CreditCard, ShieldCheck, BellRing, LifeBuoy, ClipboardList } from "lucide-react";
+import { MapPin, CreditCard, ShieldCheck, BellRing, LifeBuoy, ClipboardList, Bell } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
@@ -12,12 +12,14 @@ import { useOrders } from "@/stores/orders";
 import { useReminders } from "@/stores/reminders";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getCityName, getProvinceName } from "@/lib/location/iran";
+import { useNotificationsCount } from "@/lib/useNotificationsCount";
 
 const links = [
   { title: "آدرس‌ها", href: "/profile/addresses", subtitle: "مدیریت تحویل", icon: MapPin },
   { title: "روش‌های پرداخت", href: "/profile/payments", subtitle: "آفلاین/آنلاین", icon: CreditCard },
   { title: "پروفایل بیمار", href: "/profile/patient", subtitle: "اطلاعات اختیاری", icon: ShieldCheck },
   { title: "یادآورها", href: "/profile/reminders", subtitle: "داروها و زمان‌بندی", icon: BellRing },
+  { title: "اعلان‌ها", href: "/notifications", subtitle: "پیام‌ها و وضعیت", icon: Bell },
   { title: "پشتیبانی", href: "/support", subtitle: "تیکت و پیگیری", icon: LifeBuoy },
 ];
 
@@ -25,6 +27,7 @@ export default function ProfilePage() {
   const addresses = useAddresses();
   const orders = useOrders();
   const reminders = useReminders();
+  const notificationsCount = useNotificationsCount();
 
   const defaultAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
 
@@ -76,10 +79,11 @@ export default function ProfilePage() {
             به‌روز
           </Badge>
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard label="سفارش‌ها" value={orders.length} icon={<ClipboardList className="h-4 w-4 text-brand" />} />
           <StatCard label="آدرس‌ها" value={addresses.length} icon={<MapPin className="h-4 w-4 text-brand" />} />
           <StatCard label="یادآورها" value={reminders.length} icon={<BellRing className="h-4 w-4 text-brand" />} />
+          <StatCard label="اعلان‌ها" value={notificationsCount} icon={<Bell className="h-4 w-4 text-brand" />} />
         </div>
       </Card>
 
@@ -90,6 +94,11 @@ export default function ProfilePage() {
               <div>
                 <p className="text-base font-semibold text-text">{item.title}</p>
                 <p className="text-sm text-muted">{item.subtitle}</p>
+                {item.href === "/notifications" && notificationsCount > 0 && (
+                  <p className="mt-1 text-xs font-semibold text-primary-800">
+                    {notificationsCount.toLocaleString("fa-IR")} اعلان جدید
+                  </p>
+                )}
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-200/60 text-primary-800">
                 <item.icon className="h-5 w-5" />

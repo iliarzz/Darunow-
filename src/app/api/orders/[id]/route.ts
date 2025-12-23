@@ -1,34 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 import { OrderStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
+import { getAdminSession, getSessionUser } from "@/lib/auth";
 import { mapOrderToDto } from "@/lib/server-mappers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const admin = await getAdminSession(req);
   const opsKey = process.env.OPS_ADMIN_KEY;
   const providedKey = req.headers.get("x-ops-key") ?? req.nextUrl.searchParams.get("opsKey");
-  if (opsKey && providedKey === opsKey) {
-    const order = await prisma.order.findUnique({ where: { id: params.id }, include: { orderItems: true } });
+  if (admin || (opsKey && providedKey === opsKey)) {
+    const order = await prisma.order.findUnique({
+      where: { id: params.id },
+      include: { orderItems: true, prescriptions: true, substitutionProposals: true },
+    });
     if (!order) return NextResponse.json({ error: "not found" }, { status: 404 });
-    return NextResponse.json(mapOrderToDto(order));
+    return NextResponse.json({
+      order: mapOrderToDto(order),
+      proposals: order.substitutionProposals,
+      prescriptions: order.prescriptions,
+    });
   }
   const user = await getSessionUser(req);
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const order = await prisma.order.findFirst({
     where: { id: params.id, userId: user.id },
-    include: { orderItems: true },
+    include: { orderItems: true, prescriptions: true, substitutionProposals: true },
   });
   if (!order) return NextResponse.json({ error: "not found" }, { status: 404 });
-  return NextResponse.json(mapOrderToDto(order));
+  return NextResponse.json({
+    order: mapOrderToDto(order),
+    proposals: order.substitutionProposals,
+    prescriptions: order.prescriptions,
+  });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const admin = await getAdminSession(req);
   const opsKey = process.env.OPS_ADMIN_KEY;
   const providedKey = req.headers.get("x-ops-key") ?? req.nextUrl.searchParams.get("opsKey");
-  if (opsKey && providedKey !== opsKey) {
+  if (!admin && opsKey && providedKey !== opsKey) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   const { status, notes } = await req.json().catch(() => ({}));

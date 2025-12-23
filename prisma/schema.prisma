@@ -11,10 +11,12 @@ enum OrderStatus {
   created
   rx_received
   rx_review
+  approved
   preparing
   shipped
   delivered
   cancelled
+  refund_requested
   refunding
   refunded
 }
@@ -40,6 +42,33 @@ enum SubstitutionPref {
 enum ReplyFrom {
   user
   support
+  pharmacy
+}
+
+enum PrescriptionStatus {
+  received
+  review
+  needs_fix
+  approved
+}
+
+enum SubstitutionStatus {
+  pending
+  accepted
+  rejected
+}
+
+enum AuditActor {
+  user
+  pharmacy
+  admin
+}
+
+enum AdminRole {
+  superAdmin
+  ops
+  support
+  finance
 }
 
 model User {
@@ -52,6 +81,8 @@ model User {
   tickets   Ticket[]
   favorites Favorite[]
   ratings   Rating[]
+  prescriptions Prescription[]
+  notifications Notification[]
 }
 
 model Address {
@@ -90,6 +121,9 @@ model Pharmacy {
   favorites      Favorite[]
   ratings        Rating[]
   orders         Order[]
+  users          PharmacyUser[]
+  prescriptions  Prescription[]
+  substitutionProposals SubstitutionProposal[]
 }
 
 model Product {
@@ -130,6 +164,8 @@ model Order {
   orderItems       OrderItem[]
   ratings          Rating[]
   tickets          Ticket[]
+  prescriptions    Prescription[]
+  substitutionProposals SubstitutionProposal[]
 
   @@index([userId])
   @@index([pharmacyId])
@@ -145,6 +181,7 @@ model OrderItem {
   price     Int
   qty       Int
   subtitle  String?
+  substitutionProposals SubstitutionProposalItem[]
 }
 
 model Ticket {
@@ -198,4 +235,98 @@ model Rating {
   @@unique([orderId, userId])
   @@index([userId])
   @@index([pharmacyId])
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String?
+  role         AdminRole
+  createdAt    DateTime  @default(now())
+}
+
+model PharmacyUser {
+  id          String    @id @default(cuid())
+  pharmacyId  String
+  pharmacy    Pharmacy  @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  email       String?
+  phone       String?
+  passwordHash String?
+  role        String
+  createdAt   DateTime  @default(now())
+
+  @@index([pharmacyId])
+}
+
+model Prescription {
+  id         String            @id @default(cuid())
+  userId     String
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId    String?
+  order      Order?            @relation(fields: [orderId], references: [id])
+  pharmacyId String?
+  pharmacy   Pharmacy?         @relation(fields: [pharmacyId], references: [id])
+  fileUrl    String?
+  fileType   String?
+  status     PrescriptionStatus
+  createdAt  DateTime          @default(now())
+
+  @@index([orderId])
+  @@index([pharmacyId])
+}
+
+model SubstitutionProposal {
+  id         String              @id @default(cuid())
+  orderId    String
+  order      Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  pharmacyId String
+  pharmacy   Pharmacy            @relation(fields: [pharmacyId], references: [id])
+  status     SubstitutionStatus  @default(pending)
+  items      Json
+  createdAt  DateTime            @default(now())
+  respondedAt DateTime?
+  proposalItems SubstitutionProposalItem[]
+
+  @@index([orderId])
+  @@index([pharmacyId])
+}
+
+model SubstitutionProposalItem {
+  id          String   @id @default(cuid())
+  proposalId  String
+  proposal    SubstitutionProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  originalName String
+  proposedName String
+  priceDelta   Int
+  note         String?
+}
+
+model AuditLog {
+  id         String     @id @default(cuid())
+  actorType  AuditActor
+  actorId    String
+  action     String
+  entityType String
+  entityId   String
+  beforeJson Json?
+  afterJson  Json?
+  createdAt  DateTime   @default(now())
+
+  @@index([entityType, entityId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String
+  metaJson  Json?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }

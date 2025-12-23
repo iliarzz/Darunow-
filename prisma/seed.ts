@@ -27,6 +27,23 @@ async function main() {
     },
   });
 
+  await prisma.adminUser.upsert({
+    where: { email: "ops@darunow.test" },
+    update: { passwordHash: "admin123", role: "superAdmin" },
+    create: { email: "ops@darunow.test", passwordHash: "admin123", role: "superAdmin" },
+  });
+
+  const pharmacyUser =
+    (await prisma.pharmacyUser.findFirst({ where: { phone: "09120000001" } })) ||
+    (await prisma.pharmacyUser.create({
+      data: {
+        phone: "09120000001",
+        pharmacyId: seedPharmacies[0].id,
+        role: "owner",
+        passwordHash: "demo-pass",
+      },
+    }));
+
   for (const pharm of seedPharmacies) {
     await prisma.pharmacy.upsert({
       where: { id: pharm.id },
@@ -131,6 +148,20 @@ async function main() {
           },
         ],
       },
+    },
+  });
+
+  await prisma.prescription.upsert({
+    where: { id: "rx-seed-1" },
+    update: {},
+    create: {
+      id: "rx-seed-1",
+      userId: user.id,
+      orderId: sampleOrder.id,
+      pharmacyId: sampleOrder.pharmacyId,
+      status: "review",
+      fileType: "image",
+      fileUrl: "https://example.com/rx-placeholder",
     },
   });
 

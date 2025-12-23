@@ -16,6 +16,10 @@ import { setDefaultAddress, useAddresses } from "@/stores/address";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const bare = pathname?.startsWith("/ops") || pathname?.startsWith("/pharmacy");
+  if (bare) {
+    return <div className="min-h-screen bg-surface-2 text-primary-900">{children}</div>;
+  }
   return (
     <div className="relative min-h-screen bg-surface-2 text-primary-900">
       <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col px-4 pb-24 pt-4">

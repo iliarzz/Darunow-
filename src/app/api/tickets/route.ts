@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
+import { getAdminSession, getSessionUser } from "@/lib/auth";
 import { mapTicketToDto } from "@/lib/server-mappers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const admin = await getAdminSession(req);
   const opsKey = process.env.OPS_ADMIN_KEY;
   const provided = req.headers.get("x-ops-key") ?? req.nextUrl.searchParams.get("opsKey");
-  if (opsKey && provided === opsKey) {
+  if (admin || (opsKey && provided === opsKey)) {
     const tickets = await prisma.ticket.findMany({
       orderBy: { createdAt: "desc" },
       include: { replies: true },

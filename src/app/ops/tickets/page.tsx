@@ -1,14 +1,12 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Ticket } from "@/lib/types-v2";
 import { formatDate, formatTime } from "@/lib/format";
 
-const OPS_KEY = process.env.NEXT_PUBLIC_OPS_KEY;
 const statuses: Ticket["status"][] = ["open", "answered", "closed"];
 
 export default function OpsTicketsPage() {
@@ -20,47 +18,37 @@ export default function OpsTicketsPage() {
 }
 
 function TicketsContent() {
-  const search = useSearchParams();
-  const keyFromUrl = search?.get("key") ?? "";
-  const keyValid = !OPS_KEY || keyFromUrl === OPS_KEY;
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const opsKeyParam = useMemo(() => (OPS_KEY ? `?opsKey=${OPS_KEY}` : keyFromUrl ? `?opsKey=${keyFromUrl}` : ""), [keyFromUrl]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!keyValid) return;
     const run = async () => {
       try {
-        const res = await fetch(`/api/tickets${opsKeyParam}`);
+        const res = await fetch(`/api/tickets`);
         if (!res.ok) throw new Error("failed");
         setTickets(await res.json());
+        setError(null);
       } finally {
         setLoading(false);
       }
     };
     run();
-  }, [keyValid, opsKeyParam]);
+  }, []);
 
   const updateStatus = async (id: string, status: Ticket["status"]) => {
-    const res = await fetch(`/api/tickets/${id}${opsKeyParam}`, {
+    const res = await fetch(`/api/tickets/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      setError("به‌روزرسانی انجام نشد");
+      return;
+    }
     const updated: Ticket = await res.json();
     setTickets((prev) => prev.map((t) => (t.id === id ? updated : t)));
   };
-
-  if (!keyValid) {
-    return (
-      <div className="space-y-3">
-        <h1 className="text-2xl font-bold text-text">OPS / Tickets</h1>
-        <p className="text-sm text-muted">Access denied. Append ?key=... to continue.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4 pb-12">
@@ -69,6 +57,7 @@ function TicketsContent() {
         <Badge variant="outline">{tickets.length} مورد</Badge>
       </div>
       {loading && <p className="text-sm text-muted">در حال بارگذاری...</p>}
+      {error && <p className="text-sm text-warning">{error}</p>}
       <div className="space-y-3">
         {tickets.map((t) => (
           <Card key={t.id} className="space-y-2 border border-border/70 p-4">

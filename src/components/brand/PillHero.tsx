@@ -4,7 +4,15 @@ import { motion } from "framer-motion";
 import { SpeedLines } from "@/components/brand/SpeedLines";
 import { cn } from "@/lib/utils";
 
-export function PillHero({ className }: { className?: string }) {
+export function PillHero({
+  className,
+  title,
+  subtitle,
+}: {
+  className?: string;
+  title?: string;
+  subtitle?: string;
+}) {
   return (
     <div className={cn("relative h-56 w-full overflow-hidden rounded-3xl bg-gradient-to-br from-brand/12 via-white to-brand2/10", className)}>
       <motion.div
@@ -19,6 +27,14 @@ export function PillHero({ className }: { className?: string }) {
       />
       <SpeedLines className="absolute right-6 top-10 h-10 w-20 text-brand/20" />
       <SpeedLines className="absolute right-3 bottom-6 h-8 w-16 text-brand2/16" />
+      {(title || subtitle) && (
+        <div className="absolute inset-0 flex flex-col justify-between p-5 text-right">
+          <div className="space-y-1">
+            {title && <p className="text-lg font-bold text-primary-900">{title}</p>}
+            {subtitle && <p className="text-sm text-primary-800/70">{subtitle}</p>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
