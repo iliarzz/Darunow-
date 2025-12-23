@@ -1,14 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { z } from "zod";
-import {
-  generateId,
-  getItem,
-  safeJsonParse,
-  safeJsonStringify,
-  setItem,
-  subscribe,
-  versionedKey,
-} from "@/lib/storage";
+import { api } from "@/lib/api";
+import { getItem, safeJsonParse, safeJsonStringify, setItem, subscribe, versionedKey } from "@/lib/storage";
 import type { Ticket } from "@/lib/types-v2";
 
 const STORAGE_KEY = versionedKey("darunow.tickets", "v1");
@@ -63,22 +56,40 @@ export function getTicket(id: string): Ticket | undefined {
   return readTickets().find((t) => t.id === id);
 }
 
-export function createTicket(
-  input: Omit<Ticket, "id" | "createdAt" | "replies" | "status"> & Partial<Pick<Ticket, "status" | "replies">>,
-): Ticket {
-  const record: Ticket = {
-    ...input,
-    id: generateId("tkt"),
-    createdAt: Date.now(),
-    status: input.status ?? "open",
-    replies: input.replies ?? [],
-  };
-  const existing = readTickets();
-  writeTickets([record, ...existing]);
-  return record;
+export async function syncTicketsFromServer(): Promise<Ticket[]> {
+  try {
+    const remote = await api.listTickets();
+    writeTickets(remote as Ticket[]);
+    return remote as Ticket[];
+  } catch (err) {
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.warn("tickets sync failed", err);
+    }
+    return readTickets();
+  }
 }
 
-export function addTicketReply(id: string, from: "user" | "support", text: string): Ticket | undefined {
+export async function createTicket(
+  input: Omit<Ticket, "id" | "createdAt" | "replies" | "status"> & Partial<Pick<Ticket, "status" | "replies">>,
+): Promise<Ticket> {
+  const ticket = await api.createTicket({
+    subject: input.subject,
+    message: input.message,
+    orderId: input.orderId,
+  });
+  const existing = readTickets();
+  writeTickets([ticket, ...existing]);
+  return ticket;
+}
+
+export async function addTicketReply(id: string, from: "user" | "support", text: string): Promise<Ticket | undefined> {
+  if (from === "user") {
+    const updated = await api.replyTicket(id, text);
+    const remaining = readTickets().filter((t) => t.id !== id);
+    writeTickets([updated, ...remaining]);
+    return updated;
+  }
   const existing = readTickets();
   let updated: Ticket | undefined;
   const next = existing.map((ticket) => {
@@ -88,19 +99,6 @@ export function addTicketReply(id: string, from: "user" | "support", text: strin
       status: from === "support" ? "answered" : ticket.status,
       replies: [...ticket.replies, { at: Date.now(), from, text }],
     };
-    return updated;
-  });
-  if (!updated) return undefined;
-  writeTickets(next);
-  return updated;
-}
-
-export function updateTicketStatus(id: string, status: Ticket["status"]): Ticket | undefined {
-  const existing = readTickets();
-  let updated: Ticket | undefined;
-  const next = existing.map((ticket) => {
-    if (ticket.id !== id) return ticket;
-    updated = { ...ticket, status };
     return updated;
   });
   if (!updated) return undefined;

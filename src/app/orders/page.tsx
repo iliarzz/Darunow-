@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FadeSlideIn } from "@/components/motion/fade-slide-in";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,11 +13,18 @@ import { useOrders } from "@/stores/orders";
 import type { Order, OrderStatus } from "@/lib/types-v2";
 import { ORDER_STATUS_FLOW } from "@/constants/status";
 import { useReorderAction } from "@/components/orders/useReorderAction";
+import { Skeleton } from "@/components/ui/skeleton";
+import { syncOrdersFromServer } from "@/stores/orders";
 
 const activeStatuses: OrderStatus[] = ["created", "rx_received", "rx_review", "preparing", "shipped", "refunding"];
 
 export default function OrdersPage() {
   const orders = useOrders();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    syncOrdersFromServer().finally(() => setLoading(false));
+  }, []);
 
   const active = useMemo(() => orders.filter((o) => activeStatuses.includes(o.status)), [orders]);
   const history = useMemo(() => orders.filter((o) => !activeStatuses.includes(o.status)), [orders]);
@@ -38,20 +45,24 @@ export default function OrdersPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="active" className="space-y-3">
-          {active.length === 0 && (
+          {loading && <OrdersSkeleton />}
+          {!loading && active.length === 0 && (
             <EmptyState title="سفارش فعالی ندارید." action={{ label: "شروع سفارش", href: "/pharmacies" }} />
           )}
-          {active.map((order) => (
-            <OrderCard key={order.id} order={order} />
-          ))}
+          {!loading &&
+            active.map((order) => (
+              <OrderCard key={order.id} order={order} />
+            ))}
         </TabsContent>
         <TabsContent value="history" className="space-y-3">
-          {history.length === 0 && (
+          {loading && <OrdersSkeleton />}
+          {!loading && history.length === 0 && (
             <EmptyState title="هنوز سفارشی ثبت نکرده‌اید." action={{ label: "جستجوی داروخانه‌ها", href: "/pharmacies" }} />
           )}
-          {history.map((order) => (
-            <OrderCard key={order.id} order={order} showReorder />
-          ))}
+          {!loading &&
+            history.map((order) => (
+              <OrderCard key={order.id} order={order} showReorder />
+            ))}
         </TabsContent>
       </Tabs>
     </div>
@@ -94,5 +105,19 @@ function OrderCard({ order, showReorder }: { order: Order; showReorder?: boolean
       )}
       {conflictSheet}
     </Card>
+  );
+}
+
+function OrdersSkeleton() {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: 2 }).map((_, i) => (
+        <Card key={i} className="space-y-3 rounded-2xl border border-border/70 bg-card/90 p-4 shadow-soft">
+          <Skeleton className="h-4 w-32 rounded-full" />
+          <Skeleton className="h-4 w-40 rounded-full" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+        </Card>
+      ))}
+    </div>
   );
 }

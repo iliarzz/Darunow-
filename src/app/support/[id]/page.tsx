@@ -69,9 +69,9 @@ export default function TicketThreadPage() {
           <Textarea value={reply} onChange={(e) => setReply(e.target.value)} className="rounded-2xl" rows={3} placeholder="متن کوتاه..." />
           <Button
             className="rounded-full"
-            onClick={() => {
+            onClick={async () => {
               if (!reply) return;
-              addTicketReply(ticket.id, "user", reply);
+              await addTicketReply(ticket.id, "user", reply);
               setReply("");
             }}
           >

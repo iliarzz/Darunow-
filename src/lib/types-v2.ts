@@ -70,6 +70,8 @@ export type Order = {
   pharmacyId?: string;
   status: OrderStatus;
   items: OrderItem[];
+  subtotal?: number;
+  deliveryFee?: number;
   total: number;
   discount: number;
   payable: number;

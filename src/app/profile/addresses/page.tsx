@@ -111,7 +111,9 @@ export default function AddressesPage() {
                   size="sm"
                   variant="brandGhost"
                   className="rounded-full"
-                  onClick={() => setDefaultAddress(addr.id)}
+                  onClick={async () => {
+                    await setDefaultAddress(addr.id);
+                  }}
                 >
                   انتخاب به‌عنوان پیش‌فرض
                 </Button>

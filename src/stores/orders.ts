@@ -1,14 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { z } from "zod";
-import {
-  generateId,
-  getItem,
-  safeJsonParse,
-  safeJsonStringify,
-  setItem,
-  subscribe,
-  versionedKey,
-} from "@/lib/storage";
+import { getItem, safeJsonParse, safeJsonStringify, setItem, subscribe, versionedKey } from "@/lib/storage";
+import { api } from "@/lib/api";
 import type { Order, OrderStatus } from "@/lib/types-v2";
 
 const STORAGE_KEY = versionedKey("darunow.orders", "v1");
@@ -97,18 +90,28 @@ export function getOrder(id: string): Order | undefined {
   return readOrders().find((o) => o.id === id);
 }
 
-export function createOrder(input: Omit<Order, "id" | "createdAt" | "timeline"> & Partial<Pick<Order, "id" | "createdAt">>): Order {
-  const createdAt = input.createdAt ?? Date.now();
-  const id = input.id ?? generateId("order");
-  const record: Order = {
-    ...input,
-    id,
-    createdAt,
-    timeline: [{ status: input.status, at: createdAt }],
-  };
+export async function syncOrdersFromServer(): Promise<Order[]> {
+  try {
+    const remote = await api.listOrders();
+    writeOrders(remote);
+    return remote;
+  } catch (err) {
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.warn("orders sync failed", err);
+    }
+    return readOrders();
+  }
+}
+
+export async function createOrder(
+  input: Omit<Order, "id" | "createdAt" | "timeline"> & Partial<Pick<Order, "id" | "createdAt">>,
+): Promise<Order> {
+  const payload = { ...input };
+  const order = await api.createOrder(payload);
   const existing = readOrders();
-  writeOrders([record, ...existing]);
-  return record;
+  writeOrders([order, ...existing]);
+  return order;
 }
 
 export function updateOrder(id: string, data: Partial<Omit<Order, "id">>): Order | undefined {

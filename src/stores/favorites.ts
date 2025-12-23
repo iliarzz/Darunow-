@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { z } from "zod";
+import { api } from "@/lib/api";
 import { getItem, safeJsonParse, safeJsonStringify, setItem, subscribe, versionedKey } from "@/lib/storage";
 
 const STORAGE_KEY = versionedKey("darunow.favorites", "v1");
@@ -37,12 +38,32 @@ export function listFavorites(): FavoriteState {
   return readState();
 }
 
-export function toggleFavorite(pharmacyId: string): FavoriteState {
+export async function syncFavoritesFromServer(): Promise<FavoriteState> {
+  try {
+    const rows = await api.listFavorites();
+    const next = { pharmacyIds: rows.map((f: any) => f.pharmacyId) };
+    writeState(next);
+    return next;
+  } catch (err) {
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.warn("favorites sync failed", err);
+    }
+    return readState();
+  }
+}
+
+export async function toggleFavorite(pharmacyId: string): Promise<FavoriteState> {
   const state = readState();
   const exists = state.pharmacyIds.includes(pharmacyId);
-  const next = exists
-    ? { pharmacyIds: state.pharmacyIds.filter((id) => id !== pharmacyId) }
-    : { pharmacyIds: [pharmacyId, ...state.pharmacyIds] };
+  if (exists) {
+    await api.removeFavorite(pharmacyId);
+    const next = { pharmacyIds: state.pharmacyIds.filter((id) => id !== pharmacyId) };
+    writeState(next);
+    return next;
+  }
+  await api.addFavorite(pharmacyId);
+  const next = { pharmacyIds: [pharmacyId, ...state.pharmacyIds] };
   writeState(next);
   return next;
 }

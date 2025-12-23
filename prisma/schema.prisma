@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  created
+  rx_received
+  rx_review
+  preparing
+  shipped
+  delivered
+  cancelled
+  refunding
+  refunded
+}
+
+enum TicketStatus {
+  open
+  answered
+  closed
+}
+
+enum PaymentType {
+  online
+  cod
+  card
+}
+
+enum SubstitutionPref {
+  none
+  similarAllowed
+  askMe
+}
+
+enum ReplyFrom {
+  user
+  support
+}
+
+model User {
+  id        String    @id @default(cuid())
+  phone     String    @unique
+  name      String?
+  createdAt DateTime  @default(now())
+  addresses Address[]
+  orders    Order[]
+  tickets   Ticket[]
+  favorites Favorite[]
+  ratings   Rating[]
+}
+
+model Address {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label         String
+  recipientName String
+  phone         String
+  province      String
+  city          String
+  line1         String
+  line2         String?
+  postalCode    String?
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Pharmacy {
+  id             String     @id
+  slug           String     @unique
+  name           String
+  rating         Float      @default(0)
+  isOpen         Boolean    @default(true)
+  deliveryEtaMin Int
+  deliveryEtaMax Int
+  tags           String[]
+  addressShort   String
+  coverStyle     String?
+  city           String?
+  createdAt      DateTime   @default(now())
+  products       Product[]
+  favorites      Favorite[]
+  ratings        Rating[]
+  orders         Order[]
+}
+
+model Product {
+  id          String    @id
+  pharmacyId  String
+  pharmacy    Pharmacy  @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  name        String
+  subtitle    String?
+  price       Int
+  inStock     Boolean   @default(true)
+  description String?
+  category    String?
+  createdAt   DateTime  @default(now())
+  orderItems  OrderItem[]
+
+  @@index([pharmacyId])
+}
+
+model Order {
+  id               String            @id @default(cuid())
+  userId           String
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pharmacyId       String
+  pharmacy         Pharmacy          @relation(fields: [pharmacyId], references: [id])
+  status           OrderStatus
+  subtotal         Int
+  discount         Int
+  deliveryFee      Int
+  payable          Int
+  paymentType      PaymentType
+  substitutionPref SubstitutionPref
+  notes            String?
+  addressId        String?
+  deliverySlotId   String?
+  timeline         Json              @default("[]")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  orderItems       OrderItem[]
+  ratings          Rating[]
+  tickets          Ticket[]
+
+  @@index([userId])
+  @@index([pharmacyId])
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+  name      String
+  price     Int
+  qty       Int
+  subtitle  String?
+}
+
+model Ticket {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId   String?
+  order     Order?       @relation(fields: [orderId], references: [id])
+  subject   String
+  message   String
+  status    TicketStatus @default(open)
+  createdAt DateTime     @default(now())
+  replies   TicketReply[]
+
+  @@index([userId])
+}
+
+model TicketReply {
+  id        String    @id @default(cuid())
+  ticketId  String
+  ticket    Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  from      ReplyFrom
+  text      String
+  createdAt DateTime  @default(now())
+}
+
+model Favorite {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pharmacyId String
+  pharmacy   Pharmacy  @relation(fields: [pharmacyId], references: [id])
+  createdAt  DateTime  @default(now())
+
+  @@unique([userId, pharmacyId])
+  @@index([userId])
+}
+
+model Rating {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId    String
+  order      Order     @relation(fields: [orderId], references: [id])
+  pharmacyId String
+  pharmacy   Pharmacy  @relation(fields: [pharmacyId], references: [id])
+  score      Int
+  note       String?
+  createdAt  DateTime  @default(now())
+
+  @@unique([orderId, userId])
+  @@index([userId])
+  @@index([pharmacyId])
+}

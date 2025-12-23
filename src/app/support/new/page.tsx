@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { createTicket } from "@/stores/tickets";
 import { useToast } from "@/components/ui/use-toast";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { useOrders } from "@/stores/orders";
+import { syncOrdersFromServer, useOrders } from "@/stores/orders";
 import { StatusPill } from "@/components/orders/status-pill";
 import { track } from "@/lib/track";
 
@@ -42,19 +42,27 @@ function NewTicketContent() {
   const [orderId, setOrderId] = useState(orderIdPrefill);
   const { toast } = useToast();
 
-  const submit = () => {
+  useEffect(() => {
+    syncOrdersFromServer();
+  }, []);
+
+  const submit = async () => {
     if (!subject || !message) {
       toast({ title: "اطلاعات لازم است", description: "موضوع و متن را وارد کن." });
       return;
     }
-    createTicket({
-      subject,
-      message,
-      orderId: orderId || undefined,
-    });
-    track("ticket_created", { orderId: orderId || null });
-    toast({ title: "تیکت ثبت شد", description: "پاسخ پشتیبانی به زودی ارسال می‌شود." });
-    router.push("/support");
+    try {
+      await createTicket({
+        subject,
+        message,
+        orderId: orderId || undefined,
+      });
+      track("ticket_created", { orderId: orderId || null });
+      toast({ title: "تیکت ثبت شد", description: "پاسخ پشتیبانی به زودی ارسال می‌شود." });
+      router.push("/support");
+    } catch (err) {
+      toast({ title: "خطا در ثبت تیکت", description: "دوباره تلاش کن." });
+    }
   };
 
   return (

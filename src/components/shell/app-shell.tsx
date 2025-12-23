@@ -55,8 +55,8 @@ function TopBar() {
         <div className="flex items-center gap-2">
           <AddressPickerSheet
             selectedId={current?.id}
-            onSelect={(id) => {
-              setDefaultAddress(id);
+            onSelect={async (id) => {
+              await setDefaultAddress(id);
             }}
           >
             <Button size="sm" variant="secondary">

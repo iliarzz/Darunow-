@@ -1,10 +1,22 @@
 import { NextResponse } from "next/server";
-import { mockStore } from "@/lib/mock/store";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const pharmacyId = searchParams.get("pharmacyId");
-  const all = mockStore.listProducts();
-  const filtered = pharmacyId ? all.filter((p) => p.pharmacyId === pharmacyId) : all;
-  return NextResponse.json(filtered);
+  const products = await prisma.product.findMany({
+    where: pharmacyId ? { pharmacyId } : undefined,
+    orderBy: { createdAt: "desc" },
+  });
+  const mapped = products.map((p) => ({
+    id: p.id,
+    pharmacyId: p.pharmacyId,
+    name: p.name,
+    subtitle: p.subtitle,
+    price: p.price,
+    inStock: p.inStock,
+    description: p.description,
+    category: p.category,
+  }));
+  return NextResponse.json(mapped);
 }

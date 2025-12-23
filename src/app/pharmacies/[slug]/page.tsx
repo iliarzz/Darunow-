@@ -39,29 +39,33 @@ export default function PharmacyDetail({ params }: { params: { slug: string } })
   const isFavorite = pharmacy ? favorites.pharmacyIds.includes(pharmacy.id) : false;
 
   useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      const fallback = seedPharmacies.find((s) => s.slug === params.slug);
+      let target = fallback;
+      try {
+        const remote = await api.getPharmacy(params.slug);
+        if (remote) target = remote;
+      } catch {
+        target = fallback;
+      }
+      setPharmacy(target);
+      const pid = target?.id;
+      try {
+        const list = await api.listProducts(pid);
+        const scoped = pid ? list.filter((p) => p.pharmacyId === pid) : list;
+        setProducts(scoped?.length ? scoped : pid ? seedProducts.filter((p) => p.pharmacyId === pid) : seedProducts);
+      } catch {
+        setProducts(pid ? seedProducts.filter((p) => p.pharmacyId === pid) : seedProducts);
+        setError("بارگذاری محصولات ناموفق بود.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchData();
   }, [params.slug]);
-
-  const fetchData = () => {
-    setLoading(true);
-    setError(null);
-    api
-      .getPharmacy(params.slug)
-      .then((p) => setPharmacy(p ?? seedPharmacies.find((s) => s.slug === params.slug)))
-      .catch(() => setPharmacy(seedPharmacies.find((s) => s.slug === params.slug)));
-
-    api
-      .listProducts()
-      .then((list) => {
-        setProducts(list?.length ? list : seedProducts);
-        setLoading(false);
-      })
-      .catch(() => {
-        setProducts(seedProducts);
-        setError("بارگذاری محصولات ناموفق بود.");
-        setLoading(false);
-      });
-  };
 
   const categories = useMemo(() => Array.from(new Set(products.map((p) => p.categoryFa))) as string[], [products]);
   const scopedProducts = useMemo(
@@ -107,8 +111,8 @@ export default function PharmacyDetail({ params }: { params: { slug: string } })
             <button
               className="grid h-10 w-10 place-items-center rounded-full border border-border bg-surface-2 text-primary-800 hover:bg-surface-3"
               aria-label="علاقه‌مندی"
-              onClick={() => {
-                toggleFavorite(pharmacy.id);
+              onClick={async () => {
+                await toggleFavorite(pharmacy.id);
                 track("favorite_toggle", { pharmacyId: pharmacy.id, favorite: !isFavorite });
               }}
             >

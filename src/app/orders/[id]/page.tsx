@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { FadeSlideIn } from "@/components/motion/fade-slide-in";
 import { Card } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import { OrderStatusStepper } from "@/components/orders/order-status-stepper";
 import { formatDate, formatMoney, formatOrderId, formatTime } from "@/lib/format";
 import { useConfirm } from "@/components/confirm/useConfirm";
 import { useToast } from "@/components/ui/use-toast";
-import { useOrder, updateOrder } from "@/stores/orders";
+import { syncOrdersFromServer, useOrder, updateOrder } from "@/stores/orders";
 import type { OrderStatus, PaymentMethodType } from "@/lib/types-v2";
 import { useAddress } from "@/stores/address";
 import { getProvinceName, getCityName } from "@/lib/location/iran";
@@ -35,6 +35,14 @@ export default function OrderDetail({ params }: { params: { id: string } }) {
   const [ratingScore, setRatingScore] = useState(4);
   const [ratingNote, setRatingNote] = useState("");
   const [ratingOpen, setRatingOpen] = useState(false);
+  const itemsTotal = order?.subtotal ?? order?.total ?? 0;
+  const deliveryFee = order?.deliveryFee ?? 0;
+
+  useEffect(() => {
+    if (!order) {
+      void syncOrdersFromServer();
+    }
+  }, [order]);
 
   if (!order) {
     return (
@@ -167,8 +175,8 @@ export default function OrderDetail({ params }: { params: { id: string } }) {
                     </div>
                     <Button
                       className="w-full rounded-full"
-                      onClick={() => {
-                        saveRating({
+                      onClick={async () => {
+                        await saveRating({
                           orderId: order.id,
                           pharmacyId: order.pharmacyId ?? order.items[0]?.pharmacyId ?? "legacy-pharmacy",
                           score: ratingScore,
@@ -204,8 +212,12 @@ export default function OrderDetail({ params }: { params: { id: string } }) {
               </div>
             ))}
             <div className="flex items-center justify-between text-sm text-muted">
-              <span>جمع</span>
-              <span>{formatMoney(order.total)}</span>
+              <span>جمع اقلام</span>
+              <span>{formatMoney(itemsTotal)}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm text-muted">
+              <span>هزینه ارسال</span>
+              <span>{deliveryFee ? formatMoney(deliveryFee) : "رایگان"}</span>
             </div>
             <div className="flex items-center justify-between text-sm text-muted">
               <span>تخفیف</span>

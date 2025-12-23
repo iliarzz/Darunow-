@@ -13,11 +13,11 @@ import {
 type AddressState = {
   addresses: Address[];
   selectedAddressId?: string;
-  addAddress: (input: Omit<Address, "id" | "createdAt" | "updatedAt">) => Address;
-  updateAddress: (id: string, data: Partial<Omit<Address, "id" | "createdAt">>) => void;
-  removeAddress: (id: string) => void;
-  selectAddress: (id?: string) => void;
-  setDefault: (id: string) => void;
+  addAddress: (input: Omit<Address, "id" | "createdAt" | "updatedAt">) => Promise<Address>;
+  updateAddress: (id: string, data: Partial<Omit<Address, "id" | "createdAt">>) => Promise<void>;
+  removeAddress: (id: string) => Promise<void>;
+  selectAddress: (id?: string) => Promise<void>;
+  setDefault: (id: string) => Promise<void>;
 };
 
 export function useAddressStore<T>(selector: (state: AddressState) => T): T {
@@ -27,15 +27,17 @@ export function useAddressStore<T>(selector: (state: AddressState) => T): T {
   const state: AddressState = {
     addresses,
     selectedAddressId: current?.id,
-    addAddress: (input) => createAddress(input),
-    updateAddress: (id, data) => {
-      updateAddress(id, data);
+    addAddress: async (input) => createAddress(input),
+    updateAddress: async (id, data) => {
+      await updateAddress(id, data);
     },
-    removeAddress: (id) => removeAddress(id),
-    selectAddress: (id) => {
-      if (id) setDefaultAddress(id);
+    removeAddress: async (id) => removeAddress(id),
+    selectAddress: async (id) => {
+      if (id) await setDefaultAddress(id);
     },
-    setDefault: (id) => setDefaultAddress(id),
+    setDefault: async (id) => {
+      await setDefaultAddress(id);
+    },
   };
 
   return selector(state);

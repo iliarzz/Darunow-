@@ -27,8 +27,9 @@ export function PharmacyCard({ pharmacy, index }: { pharmacy: Pharmacy; index: n
       <Card interactive className="h-full overflow-hidden">
         <button
           className="absolute left-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-surface-1/90 text-primary-800 shadow-xs hover:bg-surface-3"
-          onClick={() => {
-            toggleFavorite(pharmacy.id);
+          onClick={async (e) => {
+            e.preventDefault();
+            await toggleFavorite(pharmacy.id);
             track("favorite_toggle", { pharmacyId: pharmacy.id, favorite: !isFavorite });
           }}
           aria-label="افزودن به علاقه‌مندی"

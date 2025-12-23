@@ -1,14 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { z } from "zod";
-import {
-  generateId,
-  getItem,
-  safeJsonParse,
-  safeJsonStringify,
-  setItem,
-  subscribe,
-  versionedKey,
-} from "@/lib/storage";
+import { api } from "@/lib/api";
+import { getItem, safeJsonParse, safeJsonStringify, setItem, subscribe, versionedKey } from "@/lib/storage";
 import type { Address } from "@/lib/types-v2";
 
 const STORAGE_KEY = versionedKey("darunow.addresses", "v1");
@@ -75,68 +68,68 @@ export function getAddress(id: string): Address | undefined {
   return readAddresses().find((a) => a.id === id);
 }
 
-export function createAddress(input: Omit<Address, "id" | "createdAt" | "updatedAt">): Address {
-  const now = Date.now();
+export async function syncAddressesFromServer(): Promise<Address[]> {
+  try {
+    const remote = await api.listAddresses();
+    const next = ensureDefault(sortAddresses(remote));
+    writeAddresses(next);
+    return next;
+  } catch (err) {
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.warn("addresses sync failed", err);
+    }
+    return readAddresses();
+  }
+}
+
+export async function createAddress(input: Omit<Address, "id" | "createdAt" | "updatedAt">): Promise<Address> {
   const existing = readAddresses();
   const isDefault = input.isDefault || existing.length === 0;
-  const record: Address = {
-    ...input,
-    id: generateId("addr"),
-    isDefault,
-    createdAt: now,
-    updatedAt: now,
-  };
+  const created = await api.createAddress({ ...input, isDefault });
   const next = ensureDefault([
-    record,
+    created,
     ...existing.map((a) => ({ ...a, isDefault: isDefault ? false : a.isDefault })),
   ]);
   writeAddresses(next);
-  return record;
+  return created;
 }
 
-export function updateAddress(
+export async function updateAddress(
   id: string,
   data: Partial<Omit<Address, "id" | "createdAt">>,
-): Address | undefined {
+): Promise<Address | undefined> {
   const existing = readAddresses();
-  let updated: Address | undefined;
-  const wantsDefault = data.isDefault ?? false;
-  const next = existing.map((addr) => {
-    if (addr.id !== id) {
-      return wantsDefault ? { ...addr, isDefault: false } : addr;
-    }
-    updated = {
-      ...addr,
-      ...data,
-      isDefault: wantsDefault ? true : data.isDefault ?? addr.isDefault,
-      updatedAt: Date.now(),
-    };
-    return updated;
-  });
-
-  if (!updated) return undefined;
+  const target = existing.find((a) => a.id === id);
+  if (!target) return undefined;
+  const wantsDefault = data.isDefault === true;
+  if (wantsDefault) {
+    await api.updateAddress(id, { ...data, isDefault: true });
+    const updated = await api.listAddresses();
+    writeAddresses(ensureDefault(sortAddresses(updated)));
+    return updated.find((a) => a.id === id);
+  }
+  const updated = await api.updateAddress(id, data);
+  const next = existing.map((addr) => (addr.id === id ? updated : addr));
   writeAddresses(ensureDefault(next));
   return updated;
 }
 
-export function removeAddress(id: string): void {
+export async function removeAddress(id: string): Promise<void> {
+  await api.deleteAddress(id);
   const remaining = readAddresses().filter((a) => a.id !== id);
   writeAddresses(ensureDefault(remaining));
 }
 
-export function setDefaultAddress(id: string): Address | undefined {
+export async function setDefaultAddress(id: string): Promise<Address | undefined> {
   const existing = readAddresses();
-  let found: Address | undefined;
-  const next = existing.map((addr) => {
-    if (addr.id === id) {
-      found = { ...addr, isDefault: true, updatedAt: Date.now() };
-      return found;
-    }
-    return { ...addr, isDefault: false };
-  });
-  if (!found) return undefined;
-  writeAddresses(next);
-  return found;
+  const target = existing.find((a) => a.id === id);
+  if (!target) return undefined;
+  await api.updateAddress(id, { isDefault: true });
+  const refreshed = await api.listAddresses();
+  const sorted = ensureDefault(sortAddresses(refreshed));
+  writeAddresses(sorted);
+  return sorted.find((a) => a.id === id);
 }
 
 export function useAddresses(): Address[] {

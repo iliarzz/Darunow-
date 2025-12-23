@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { z } from "zod";
+import { api } from "@/lib/api";
 import { getItem, safeJsonParse, safeJsonStringify, setItem, subscribe, versionedKey } from "@/lib/storage";
 
 export type Rating = {
@@ -51,7 +52,39 @@ export function getRatingForOrder(orderId: string): Rating | undefined {
   return readRatings().find((r) => r.orderId === orderId);
 }
 
-export function saveRating(input: Omit<Rating, "createdAt">): Rating {
+export async function syncRatingsFromServer(): Promise<Rating[]> {
+  try {
+    const remote = await api.listRatings();
+    const mapped: Rating[] = (remote as any[]).map((r) => ({
+      orderId: r.orderId,
+      pharmacyId: r.pharmacyId,
+      score: r.score,
+      note: r.note ?? undefined,
+      createdAt:
+        typeof r.createdAt === "number"
+          ? r.createdAt
+          : r.createdAt
+            ? new Date(r.createdAt).getTime()
+            : Date.now(),
+    }));
+    writeRatings(mapped);
+    return mapped;
+  } catch (err) {
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.warn("ratings sync failed", err);
+    }
+    return readRatings();
+  }
+}
+
+export async function saveRating(input: Omit<Rating, "createdAt">): Promise<Rating> {
+  await api.createRating({
+    orderId: input.orderId,
+    pharmacyId: input.pharmacyId,
+    score: input.score,
+    note: input.note,
+  });
   const now = Date.now();
   const remaining = readRatings().filter((r) => r.orderId !== input.orderId);
   const record: Rating = { ...input, createdAt: now };

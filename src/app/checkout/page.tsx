@@ -13,7 +13,7 @@ import { AddressPickerSheet } from "@/components/features/AddressPickerSheet";
 import { formatMoney } from "@/lib/format";
 import { useToast } from "@/components/ui/use-toast";
 import { useCartItems, cartTotal, cartWithDetails, clearCart } from "@/stores/cart";
-import { useAddresses, setDefaultAddress } from "@/stores/address";
+import { syncAddressesFromServer, useAddresses, setDefaultAddress } from "@/stores/address";
 import { useAppliedCoupon, applyCoupon, clearCoupon } from "@/stores/coupons";
 import { useCheckoutPrefs, setPreferredDeliveryType, setSubstitutionPreference } from "@/stores/checkout-prefs";
 import { createPayment, setDefaultPayment, usePayments } from "@/stores/payment";
@@ -70,6 +70,10 @@ function CheckoutContent() {
   const [paymentMethodId, setPaymentMethodId] = useState<string | undefined>(session.selectedPaymentId);
   const [couponInput, setCouponInput] = useState("");
   const [couponError, setCouponError] = useState<string | null>(null);
+
+  useEffect(() => {
+    syncAddressesFromServer();
+  }, []);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -175,7 +179,7 @@ function CheckoutContent() {
     return online;
   };
 
-  const placeOrder = () => {
+  const placeOrder = async () => {
     if (!items.length) {
       toast({ title: "سبد خالی است", description: "ابتدا محصول یا نسخه اضافه کن." });
       return;
@@ -185,34 +189,40 @@ function CheckoutContent() {
       return;
     }
     const payment = ensurePayment();
-    setDefaultAddress(selectedAddress.id);
+    await setDefaultAddress(selectedAddress.id);
     setDefaultPayment(payment.id);
     const pharmacyId = items[0]?.pharmacyId ?? lines[0]?.pharmacy?.id;
-    const order = createOrder({
-      status: "preparing",
-      pharmacyId,
-      items: lines.map(({ item }) => ({
-        name: item.name,
-        qty: item.qty,
-        price: item.price,
-        productId: item.id,
-        pharmacyId: item.pharmacyId,
-        subtitle: item.subtitle,
-      })),
-      total: payableBefore,
-      discount,
-      payable,
-      addressId: selectedAddress.id,
-      deliverySlotId: selectedSlot,
-      paymentType: payment.type as PaymentMethodType,
-      substitution: prefs.substitution,
-    });
-    clearCart();
-    clearCoupon();
-    clearCheckoutSession();
-    track("order_submitted", { orderId: order.id, payable });
-    toast({ title: "سفارش ثبت شد", description: "برای پیگیری به صفحه سفارش‌ها منتقل می‌شوی." });
-    router.push(`/orders/success?orderId=${order.id}`);
+    try {
+      const order = await createOrder({
+        status: "preparing",
+        pharmacyId,
+        items: lines.map(({ item }) => ({
+          name: item.name,
+          qty: item.qty,
+          price: item.price,
+          productId: item.id,
+          pharmacyId: item.pharmacyId,
+          subtitle: item.subtitle,
+        })),
+        subtotal: subtotal,
+        discount,
+        deliveryFee: slotFee,
+        total: payableBefore,
+        payable,
+        addressId: selectedAddress.id,
+        deliverySlotId: selectedSlot,
+        paymentType: payment.type as PaymentMethodType,
+        substitution: prefs.substitution,
+      });
+      clearCart();
+      clearCoupon();
+      clearCheckoutSession();
+      track("order_submitted", { orderId: order.id, payable });
+      toast({ title: "سفارش ثبت شد", description: "برای پیگیری به صفحه سفارش‌ها منتقل می‌شوی." });
+      router.push(`/orders/success?orderId=${order.id}`);
+    } catch (err) {
+      toast({ title: "خطا در ثبت سفارش", description: "دوباره تلاش کن." });
+    }
   };
 
   if (!items.length) {

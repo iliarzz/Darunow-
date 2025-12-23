@@ -9,6 +9,7 @@ export type Pharmacy = {
   rating: number;
   addressShort: string;
   coverStyle: "gradient" | "glass" | "pattern";
+  isFavorite?: boolean;
 };
 
 export type Product = {

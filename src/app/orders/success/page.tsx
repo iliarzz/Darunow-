@@ -1,18 +1,25 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { CheckCircle2, Clock3 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatTime } from "@/lib/format";
 import { StatusPill } from "@/components/orders/status-pill";
-import { useOrder } from "@/stores/orders";
+import { syncOrdersFromServer, useOrder } from "@/stores/orders";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 export default function OrderSuccess({ searchParams }: { searchParams: { orderId?: string } }) {
   const orderId = searchParams?.orderId;
   const order = useOrder(orderId);
+
+  useEffect(() => {
+    if (!order && orderId) {
+      void syncOrdersFromServer();
+    }
+  }, [order, orderId]);
 
   if (!orderId) {
     return (

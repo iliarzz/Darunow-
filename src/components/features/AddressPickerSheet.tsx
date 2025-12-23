@@ -31,9 +31,9 @@ export function AddressPickerSheet({ children, selectedId, onSelect }: Props) {
 
   const loading = !hydrated;
 
-  const handleSelect = (id: string) => {
+  const handleSelect = async (id: string) => {
     onSelect(id);
-    setDefaultAddress(id);
+    await setDefaultAddress(id);
     setOpen(false);
   };
 
