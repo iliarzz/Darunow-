@@ -22,19 +22,23 @@ export function EmptyState({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className={cn("flex flex-col gap-2 rounded-[16px] border border-border bg-surface-1 p-5 shadow-xs", className)}>
-      <div className="flex items-center gap-2 text-primary-800">
-        {icon ?? <Inbox className="h-5 w-5 text-accent-500" />}
-        <h3 className="text-[15px] font-semibold">{title}</h3>
+    <div className={cn("flex flex-col gap-3 rounded-[16px] border border-divider bg-surface-1 p-5 shadow-elev-1", className)}>
+      <div className="flex items-center gap-3">
+        <div className="grid h-12 w-12 place-items-center rounded-full bg-accent-200/35 text-primary-800">
+          {icon ?? <Inbox className="h-5 w-5" />}
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-[15px] font-semibold text-primary-900">{title}</h3>
+          {description && <p className="text-sm text-muted leading-relaxed">{description}</p>}
+        </div>
       </div>
-      {description && <p className="text-sm text-muted">{description}</p>}
       {action && (
         <Button
-          variant="primary"
-          size="sm"
+          variant="secondary"
+          size="md"
           asChild
           onClick={"onClick" in action ? action.onClick : undefined}
-          className="mt-1 w-fit"
+          className="w-fit rounded-full px-4"
         >
           {"href" in action ? <a href={action.href}>{action.label}</a> : <span>{action.label}</span>}
         </Button>

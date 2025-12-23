@@ -7,6 +7,12 @@
 :root {
   --font-sans: "Vazirmatn", system-ui, -apple-system, sans-serif;
   --font-display: var(--font-sans);
+  --fs-h1: 22px;
+  --fs-h2: 18px;
+  --fs-body: 14px;
+  --fs-caption: 12px;
+  --lh-tight: 1.25;
+  --lh-body: 1.6;
 }
 
 *,
@@ -26,7 +32,7 @@ body {
   background: var(--surface-2);
   color: var(--primary-900);
   min-height: 100vh;
-  line-height: 1.6;
+  line-height: var(--lh-body);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -37,14 +43,14 @@ body {
 
 @layer base {
   h1 {
-    font-size: 22px;
+    font-size: var(--fs-h1);
     font-weight: 700;
-    line-height: 1.25;
+    line-height: var(--lh-tight);
   }
   h2 {
-    font-size: 18px;
+    font-size: var(--fs-h2);
     font-weight: 700;
-    line-height: 1.25;
+    line-height: var(--lh-tight);
   }
   h3 {
     font-size: 16px;
@@ -54,11 +60,12 @@ body {
   p,
   span,
   label {
-    font-size: 14px;
+    font-size: var(--fs-body);
     font-weight: 400;
+    line-height: var(--lh-body);
   }
   small {
-    font-size: 12px;
+    font-size: var(--fs-caption);
   }
   a,
   button,
@@ -84,5 +91,30 @@ body {
   }
   .surface-3 {
     background: var(--surface-3);
+  }
+  .type-h1 {
+    font-size: var(--fs-h1);
+    font-weight: 700;
+    line-height: var(--lh-tight);
+  }
+  .type-h2 {
+    font-size: var(--fs-h2);
+    font-weight: 700;
+    line-height: var(--lh-tight);
+  }
+  .type-body {
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+  }
+  .type-caption {
+    font-size: var(--fs-caption);
+    color: var(--muted);
+  }
+  .hero-tint {
+    background-image: var(--hero-tint);
+  }
+  .numeric {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
   }
 }

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Pill, FileText, HeartPulse, Stethoscope } from "lucide-react";
+import { Pill, FileText, HeartPulse, Stethoscope } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MediaPlaceholder } from "@/components/ui/MediaPlaceholder";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SpeedLines } from "@/components/brand/SpeedLines";
+import { SectionHeader } from "@/components/ui/section-header";
 import { PharmacyCard } from "@/components/pharmacy/pharmacy-card";
 import { api } from "@/lib/api";
 import type { Pharmacy } from "@/lib/types";
@@ -56,13 +57,13 @@ export default function Home() {
   );
 
   return (
-    <div className="space-y-6 pb-16">
-      <Card className="relative overflow-hidden border border-border bg-surface-1 p-5">
-        <div className="absolute left-4 top-4">
-          <SpeedLines className="h-6 w-14 text-accent-200/70" />
+    <div className="space-y-7 pb-16">
+      <Card featured className="relative overflow-hidden border border-divider bg-surface-1/95 p-5 shadow-elev-2 hero-tint">
+        <div className="absolute left-4 top-4 opacity-90">
+          <SpeedLines className="h-6 w-14 text-accent-200/60" />
         </div>
         <div className="space-y-4">
-          <h1 className="text-[22px] font-bold text-primary-900">سلام، امروز چی لازم داری؟</h1>
+          <h1 className="type-h1 text-primary-900">سلام، امروز چی لازم داری؟</h1>
           <SearchBar value={query} onChange={setQuery} onClear={() => setQuery("")} placeholder="دارو، داروخانه یا خدمت..." />
           <div className="flex flex-wrap gap-2">
             <Button variant="primary" onClick={handleSearch}>
@@ -75,21 +76,22 @@ export default function Home() {
         </div>
       </Card>
 
-      <Card className="space-y-3 border border-border bg-surface-1 p-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[16px] font-semibold">میانبرها</h2>
-          <SpeedLines className="h-4 w-10 text-accent-200/80" />
-        </div>
+      <Card className="space-y-4 border border-divider bg-surface-1 p-4 shadow-elev-1">
+        <SectionHeader title="میانبرها" subtitle="دسترسی سریع به خدمات" action={{ label: "مشاهده همه", href: "/pharmacies", variant: "ghost" }} />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {quickActions.map((action) => (
-            <Link key={action.label} href={action.href} className="group flex flex-col gap-2 rounded-[14px] border border-border bg-surface-2 p-3 transition hover:border-primary-700/50">
+            <Link
+              key={action.label}
+              href={action.href}
+              className="group flex flex-col gap-2 rounded-[14px] border border-divider bg-surface-2 p-3 transition hover:border-primary-700/40"
+            >
               <div className="flex items-center justify-between gap-2">
                 <div className="grid h-10 w-10 place-items-center rounded-full bg-accent-200/60 text-primary-800">
-                  <action.icon className="h-4 w-4" />
+                  <action.icon className="h-5 w-5" />
                 </div>
                 {action.soon && <span className="text-[11px] text-muted">به‌زودی</span>}
               </div>
-              <p className="text-sm font-semibold text-primary-900">{action.label}</p>
+              <p className="text-sm font-semibold text-primary-900 leading-snug">{action.label}</p>
             </Link>
           ))}
         </div>
@@ -99,10 +101,7 @@ export default function Home() {
 
       {hydrated && favoriteCards.length > 0 && (
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[16px] font-semibold text-primary-900">محبوب‌های شما</h2>
-            <span className="text-xs text-muted">بازدید سریع</span>
-          </div>
+          <SectionHeader title="محبوب‌های شما" subtitle="بازدید سریع" />
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {favoriteCards.map((ph, idx) => (
               <PharmacyCard key={ph.id} pharmacy={ph} index={idx} />
@@ -112,10 +111,7 @@ export default function Home() {
       )}
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[16px] font-semibold text-primary-900">دسته‌بندی‌ها</h2>
-          <span className="text-xs text-muted">انتخاب سریع</span>
-        </div>
+        <SectionHeader title="دسته‌بندی‌ها" subtitle="انتخاب سریع" />
         <div className="flex gap-2 overflow-x-auto pb-1">
           {categories.map((cat) => (
             <Chip key={cat} onClick={() => setQuery(cat)}>
@@ -126,18 +122,18 @@ export default function Home() {
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[16px] font-semibold text-primary-900">داروخانه‌های نزدیک</h2>
-          <Button asChild variant="ghost" size="sm" iconAfter={<ArrowLeft className="h-4 w-4" />}>
-            <Link href="/pharmacies">مشاهده همه</Link>
-          </Button>
-        </div>
+        <SectionHeader
+          title="داروخانه‌های نزدیک"
+          subtitle="پیشنهاد اطراف شما"
+          action={{ label: "مشاهده همه", href: "/pharmacies" }}
+          className="items-end"
+        />
         {loading ? (
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 3 }).map((_, idx) => (
-              <Card key={idx} className="space-y-3 border border-border p-3">
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-4 w-24" />
+              <Card key={idx} className="space-y-3 border border-divider p-4">
+                <Skeleton className="h-32 w-full rounded-[14px]" />
+                <Skeleton className="h-4 w-28" />
                 <Skeleton className="h-3 w-36" />
               </Card>
             ))}

@@ -25,6 +25,7 @@ const config: Config = {
         background: "var(--bg)",
         foreground: "var(--primary-900)",
         border: "var(--border)",
+        divider: "var(--divider)",
         muted: "var(--muted)",
         mutedText: "var(--muted)",
         text: "var(--primary-900)",
@@ -62,6 +63,11 @@ const config: Config = {
       boxShadow: {
         xs: "var(--shadow-xs)",
         sm: "var(--shadow-sm)",
+        "elev-1": "var(--elev-1)",
+        "elev-2": "var(--elev-2)",
+      },
+      backgroundImage: {
+        "hero-tint": "var(--hero-tint)",
       },
       keyframes: {
         "fade-in": {

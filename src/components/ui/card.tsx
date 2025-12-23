@@ -7,11 +7,12 @@ import { cn } from "@/lib/utils";
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   interactive?: boolean;
+  featured?: boolean;
 }
 
 const MotionDiv = motion.div as any;
 
-const Card = React.forwardRef<HTMLDivElement, CardProps>(({ className, interactive, ...props }, ref) => {
+const Card = React.forwardRef<HTMLDivElement, CardProps>(({ className, interactive, featured, ...props }, ref) => {
   const Comp = interactive ? MotionDiv : "div";
   const tapProps = interactive ? tapScale : {};
 
@@ -19,8 +20,11 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(({ className, interacti
     <Comp
       ref={ref as any}
       className={cn(
-        "rounded-[16px] border border-border bg-surface-1 shadow-xs transition-shadow duration-150",
-        interactive ? "hover:shadow-sm" : "shadow-xs",
+        "relative overflow-hidden rounded-[16px] border border-divider bg-surface-1 shadow-elev-1 transition-shadow duration-150",
+        interactive ? "hover:shadow-elev-2" : "shadow-elev-1",
+        featured
+          ? "before:absolute before:inset-x-0 before:top-0 before:h-[3px] before:bg-gradient-to-l before:from-accent-500/60 before:to-primary-800/70"
+          : "",
         className,
       )}
       {...tapProps}
