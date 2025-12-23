@@ -64,7 +64,7 @@ export function logEvent(
   level: LogLevel = "info",
 ) {
   const ctx = getRequestContext();
-  const payload = sanitize(props ?? {});
+  const payload = sanitize(props ?? {}) as Record<string, unknown>;
   const base = {
     event: name,
     requestId: ctx?.requestId,

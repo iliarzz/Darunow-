@@ -418,6 +418,7 @@ model User {
   teleVisits    TeleVisit[]
   invoices      Invoice[]
   visitSummaries VisitSummary[]
+  consents      ConsentGrant[]
   careEnrollments Enrollment[]
 }
 
@@ -732,6 +733,7 @@ model Order {
   tickets               Ticket[]
   prescriptions         Prescription[]
   substitutionProposals SubstitutionProposal[]
+  claimCases            ClaimCase[]
 
   @@index([userId])
   @@index([pharmacyId])
@@ -894,8 +896,6 @@ model ProviderUser {
   conversations      Conversation[]
   teleVisits         TeleVisit[]
   providerNotes      ProviderNote[]
-  visitSummaries     VisitSummary[]
-  careTeamMemberships CareTeamMember[]
 
   @@index([orgId])
   @@index([email])
@@ -1038,8 +1038,8 @@ model Message {
   senderId       String
   type           MessageType
   text           String?
-  fileId         String?
-  file           MessageAttachment? @relation(fields: [fileId], references: [id], onDelete: SetNull)
+  fileId         String?          @unique
+  file           MessageAttachment? @relation("MessageFile", fields: [fileId], references: [id], onDelete: SetNull)
   createdAt      DateTime          @default(now())
   reads          MessageRead[]
 
@@ -1066,6 +1066,7 @@ model MessageAttachment {
   sizeBytes  Int
   storageKey String
   createdAt  DateTime            @default(now())
+  message    Message?            @relation("MessageFile")
 
   @@index([ownerType, ownerId])
 }
@@ -1288,6 +1289,8 @@ model LabResultShare {
   id             String                 @id @default(cuid())
   userId         String
   user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  labOrderId     String?
+  labOrder       LabOrder?              @relation(fields: [labOrderId], references: [id], onDelete: SetNull)
   granteeType    LabResultShareGrantee
   granteeId      String
   consentGrantId String?
@@ -1357,6 +1360,7 @@ model Appointment {
   reminders AppointmentReminder[]
   teleVisit TeleVisit?         @relation("AppointmentTeleVisit")
   conversations Conversation[]
+  invoices   Invoice[]
 
   @@index([userId, startAt])
   @@index([orgType, orgId, startAt])
@@ -1386,6 +1390,7 @@ model ConsentGrant {
   createdAt    DateTime      @default(now())
   revokedAt    DateTime?
   accessTokens AccessToken[]
+  labResultShares LabResultShare[]
 
   @@index([userId])
   @@index([granteeType, granteeId])

@@ -52,7 +52,6 @@ function ensureFetchPatched() {
     if (ctx.orderId) headers.set("x-order-id", ctx.orderId);
     return baseFetch(input, { ...init, headers });
   };
-  // @ts-expect-error - intentional override for server-side fetch
   globalThis.fetch = patched;
   fetchPatched = true;
 }

@@ -29,7 +29,7 @@ export function BottomNav() {
   const activeHref = useMemo(() => pathname || "/", [pathname]);
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface-1/95 px-2 py-2 shadow-xs backdrop-blur">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-divider bg-surface-1/95 px-2 py-2 shadow-elev-1 backdrop-blur">
       <div className="mx-auto grid w-full max-w-5xl grid-cols-5 gap-1">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -44,14 +44,14 @@ export function BottomNav() {
               <motion.div
                 className={cn(
                   "flex w-full flex-col items-center gap-1 rounded-[14px] px-2 py-2 text-[11px] font-semibold transition-colors",
-                  isActive ? "bg-surface-3 text-primary-900 border border-border" : "text-muted",
+                  isActive ? "bg-surface-3 text-primary-900 shadow-xs border border-divider" : "text-muted",
                 )}
                 {...tapScale}
               >
                 <div className="relative grid h-9 w-9 place-items-center">
                   <Icon className="h-5 w-5" />
                   {(item.href === "/cart" || (typeof item.href !== "string" && item.href.pathname === "/cart")) && cartCount > 0 && (
-                    <Badge variant="info" className="absolute -right-2 -top-1 px-2 py-0 text-[10px] font-bold">
+                    <Badge variant="info" className="absolute -right-2 -top-1 rounded-full px-2 py-0 text-[10px] font-bold">
                       {formatNumber(cartCount)}
                     </Badge>
                   )}

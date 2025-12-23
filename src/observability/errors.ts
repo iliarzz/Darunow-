@@ -28,8 +28,7 @@ export class AppError extends Error {
     this.code = options?.code;
     this.details = options?.details;
     if (options?.cause) {
-      // @ts-expect-error non-standard cause kept for internal debugging only
-      this.cause = options.cause;
+      (this as any).cause = options.cause;
     }
   }
 }

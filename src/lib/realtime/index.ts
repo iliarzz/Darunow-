@@ -121,7 +121,7 @@ class PersistingRealtimeClient implements RealtimeClient {
 
 class AblyRealtime implements RealtimeClient {
   private rest?: Ably.Rest;
-  private realtime?: Ably.RealtimePromise;
+  private realtime?: Ably.Realtime;
   private authorized = new Set<string>();
 
   private getRest(): Ably.Rest {
@@ -135,14 +135,11 @@ class AblyRealtime implements RealtimeClient {
     return this.rest;
   }
 
-  private getRealtime(): Ably.RealtimePromise {
+  private getRealtime(): Ably.Realtime {
     if (!this.realtime) {
-      this.realtime = new Ably.Realtime.Promise({
+      this.realtime = new Ably.Realtime({
         authUrl: "/api/realtime/auth",
         authMethod: "POST",
-        maxReconnectInterval: 15000,
-        disconnectedRetryTimeout: 4000,
-        suspendedRetryTimeout: 15000,
       });
     }
     return this.realtime;

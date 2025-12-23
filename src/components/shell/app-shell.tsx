@@ -44,17 +44,17 @@ function TopBar() {
   const areaText = current ? `${getProvinceName(current.province)}` : "موقعیت را مشخص کن";
 
   return (
-    <header className="mb-5 rounded-[18px] border border-border bg-surface-1 px-4 py-3 shadow-xs">
+    <header className="mb-5 rounded-[18px] border border-divider bg-surface-1/95 px-4 py-3 shadow-elev-1 hero-tint">
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-1 items-center gap-3 overflow-hidden">
-          <div className="grid h-10 w-10 place-items-center rounded-full bg-accent-200/60 text-primary-800">
-            <MapPin className="h-4 w-4" />
+          <div className="grid h-10 w-10 place-items-center rounded-full bg-accent-200/50 text-primary-800">
+            <MapPin className="h-5 w-5" />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 space-y-1">
             <p className="text-[13px] text-muted">{areaText}</p>
-            <p className="truncate text-[15px] font-semibold">{locationText}</p>
+            <p className="truncate text-[15px] font-semibold leading-tight">{locationText}</p>
           </div>
-          <SpeedLineAccent className="ml-auto h-5 w-10" />
+          <SpeedLineAccent className="ml-auto h-5 w-10 opacity-70" />
         </div>
         <div className="flex items-center gap-2">
           <AddressPickerSheet
@@ -63,19 +63,13 @@ function TopBar() {
               await setDefaultAddress(id);
             }}
           >
-            <Button size="sm" variant="secondary">
+            <Button size="sm" variant="ghost" className="rounded-full border border-divider bg-surface-1 px-3 text-sm">
               تغییر
             </Button>
           </AddressPickerSheet>
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            className="min-w-[44px] px-3"
-            title="جستجو"
-          >
+          <Button variant="ghost" size="sm" asChild className="min-w-[44px] rounded-full px-3" title="جستجو">
             <Link href={{ pathname: "/pharmacies", query: { focus: "search" } }}>
-              <Search className="h-4 w-4" />
+              <Search className="h-5 w-5" />
             </Link>
           </Button>
         </div>
