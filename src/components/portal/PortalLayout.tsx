@@ -51,12 +51,9 @@ const navItems: NavItem[] = [
   { href: "/pharmacy-portal", label: "داشبورد", icon: LayoutDashboard },
   { href: "/pharmacy-portal/orders", label: "سفارش‌ها", icon: ClipboardList, permission: "ORDERS_VIEW" },
   { href: "/pharmacy-portal/prescriptions", label: "نسخه‌ها", icon: FileText, permission: "PRESCRIPTIONS_REVIEW" },
-  { href: "/pharmacy-portal/catalog", label: "کاتالوگ", icon: PackageSearch, permission: "CATALOG_MANAGE" },
   { href: "/pharmacy-portal/inventory", label: "موجودی", icon: Boxes, permission: "INVENTORY_MANAGE" },
-  { href: "/pharmacy-portal/dispatch", label: "ارسال", icon: Truck, permission: "ORDERS_UPDATE_STATUS" },
   { href: "/pharmacy-portal/finance", label: "مالی", icon: Wallet, permission: "FINANCE_VIEW" },
   { href: "/pharmacy-portal/support", label: "پشتیبانی", icon: Headset, permission: "SUPPORT_VIEW" },
-  { href: "/pharmacy-portal/staff", label: "کاربران", icon: Users, permission: "STAFF_MANAGE" },
   { href: "/pharmacy-portal/settings", label: "تنظیمات", icon: Settings, permission: "SETTINGS_MANAGE" },
 ];
 

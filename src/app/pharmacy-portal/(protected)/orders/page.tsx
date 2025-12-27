@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { FilterBar } from "@/components/ui/FilterBar";
 import { InfoChip } from "@/components/ui/InfoChip";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Input } from "@/components/ui/input";
@@ -19,13 +18,17 @@ import { hasPermission } from "@/lib/rbac/permissions";
 import type { Order, OrderStatus, OrderType, PaymentMethod } from "@/lib/orders/types";
 import { formatMoney, formatOrderId, formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Clock3, CreditCard, MapPin, Package, Pill, Search, Timer } from "lucide-react";
 import { usePortalSession } from "@/stores/portal-session";
 
 const tabs: { key: string; label: string; statuses: OrderStatus[] }[] = [
-  { key: "new", label: "جدید", statuses: ["PLACED", "PHARMACY_REVIEW"] },
+  { key: "new", label: "جدید", statuses: ["PLACED"] },
+  { key: "review", label: "بررسی", statuses: ["PHARMACY_REVIEW"] },
   { key: "prep", label: "آماده‌سازی", statuses: ["PHARMACY_ACCEPTED", "PREPARING"] },
-  { key: "ship", label: "ارسال", statuses: ["READY_FOR_DISPATCH", "DISPATCHED"] },
+  { key: "ready", label: "آماده ارسال", statuses: ["READY_FOR_DISPATCH"] },
+  { key: "dispatch", label: "ارسال", statuses: ["DISPATCHED"] },
   { key: "done", label: "تکمیل‌شده", statuses: ["DELIVERED"] },
   { key: "canceled", label: "لغو/رد", statuses: ["CANCELED", "PHARMACY_REJECTED"] },
 ];
@@ -62,6 +65,7 @@ export default function PortalOrdersPage() {
   const [initialized, setInitialized] = useState(false);
   const [flashIds, setFlashIds] = useState<string[]>([]);
   const seenOrders = useRef<Set<string>>(new Set());
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     const incoming = searchParams.get("q");
@@ -176,8 +180,8 @@ export default function PortalOrdersPage() {
         </div>
       </Card>
 
-      <FilterBar className="top-28 space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
+      <Card className="space-y-2 rounded-2xl border border-divider bg-surface-1/95 p-3 shadow-soft">
+        <div className="flex items-center gap-2">
           <div className="relative flex min-w-[260px] flex-1 items-center gap-2 rounded-xl border border-divider bg-surface-2/70 px-3 py-2">
             <Search className="h-4 w-4 text-muted" />
             <Input
@@ -187,66 +191,61 @@ export default function PortalOrdersPage() {
               className="h-8 flex-1 border-none bg-transparent px-0 text-[13px] shadow-none focus-visible:ring-0"
             />
           </div>
-          <Button variant="ghost" className="rounded-full" onClick={resetFilters} disabled={loading}>
-            پاک‌سازی فیلترها
-          </Button>
+          <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="secondary" className="rounded-full">
+                فیلترها
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-72">
+              <div className="space-y-2">
+                <label className="space-y-1 text-xs text-muted">
+                  <span>نوع سفارش</span>
+                  <select
+                    value={type || ""}
+                    onChange={(e) => setType((e.target.value as OrderType) || "")}
+                    className="w-full rounded-xl border border-divider bg-surface-2/70 px-3 py-2 text-sm"
+                  >
+                    <option value="">همه</option>
+                    <option value="STANDARD">سفارش</option>
+                    <option value="PRESCRIPTION">نسخه</option>
+                  </select>
+                </label>
+                <label className="space-y-1 text-xs text-muted">
+                  <span>نوع پرداخت</span>
+                  <select
+                    value={payment || ""}
+                    onChange={(e) => setPayment((e.target.value as PaymentMethod) || "")}
+                    className="w-full rounded-xl border border-divider bg-surface-2/70 px-3 py-2 text-sm"
+                  >
+                    <option value="">همه</option>
+                    <option value="ONLINE_SHAPARAK">آنلاین</option>
+                    <option value="COD_CARD_READER">پرداخت در محل</option>
+                    <option value="CARD_TO_CARD">کارت به کارت</option>
+                  </select>
+                </label>
+                <label className="space-y-1 text-xs text-muted">
+                  <span>بازه زمانی</span>
+                  <select
+                    value={timeWindow}
+                    onChange={(e) => setTimeWindow(e.target.value)}
+                    className="w-full rounded-xl border border-divider bg-surface-2/70 px-3 py-2 text-sm"
+                  >
+                    {timeWindowOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <Button variant="ghost" className="w-full rounded-full" onClick={resetFilters} disabled={loading}>
+                  پاک‌سازی فیلترها
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
-        <div className="grid gap-3 md:grid-cols-4">
-          <label className="space-y-1 text-xs text-muted">
-            <span>نوع سفارش</span>
-            <select
-              value={type || ""}
-              onChange={(e) => setType((e.target.value as OrderType) || "")}
-              className="w-full rounded-xl border border-divider bg-surface-2/70 px-3 py-2 text-sm"
-            >
-              <option value="">همه</option>
-              <option value="STANDARD">سفارش</option>
-              <option value="PRESCRIPTION">نسخه</option>
-            </select>
-          </label>
-          <label className="space-y-1 text-xs text-muted">
-            <span>نوع پرداخت</span>
-            <select
-              value={payment || ""}
-              onChange={(e) => setPayment((e.target.value as PaymentMethod) || "")}
-              className="w-full rounded-xl border border-divider bg-surface-2/70 px-3 py-2 text-sm"
-            >
-              <option value="">همه</option>
-              <option value="ONLINE_SHAPARAK">آنلاین</option>
-              <option value="COD_CARD_READER">پرداخت در محل</option>
-              <option value="CARD_TO_CARD">کارت به کارت</option>
-            </select>
-          </label>
-          <label className="space-y-1 text-xs text-muted">
-            <span>بازه زمانی</span>
-            <select
-              value={timeWindow}
-              onChange={(e) => setTimeWindow(e.target.value)}
-              className="w-full rounded-xl border border-divider bg-surface-2/70 px-3 py-2 text-sm"
-            >
-              {timeWindowOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="space-y-1 text-xs text-muted">
-            <span>نوع دسته</span>
-            <select
-              value={tab}
-              onChange={(e) => setTab(e.target.value)}
-              className="w-full rounded-xl border border-divider bg-surface-2/70 px-3 py-2 text-sm"
-            >
-              {tabs.map((t) => (
-                <option key={t.key} value={t.key}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </FilterBar>
+      </Card>
 
       <SegmentedControl
         value={tab}
@@ -289,68 +288,53 @@ function OrderRow({ order, highlight, canReview }: { order: Order; highlight?: b
   return (
     <Card
       className={cn(
-        "group grid gap-3 rounded-2xl border border-divider/80 bg-surface-1/95 p-4 shadow-soft transition-all",
-        "md:grid-cols-[1.6fr,1fr]",
+        "flex flex-col gap-3 rounded-2xl border border-divider/80 bg-surface-1/95 px-3 py-2 shadow-soft transition-all md:flex-row md:items-center",
         highlight && "animate-pulse ring-2 ring-primary-500/70 shadow-elev-2",
       )}
     >
-      <div className="space-y-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="rounded-full px-2 py-[4px] text-[12px]">
-            سفارش <span className="ltr ms-1 inline-flex">{formatOrderId(order.id)}</span>
+      <div className="flex flex-1 flex-wrap items-center gap-3">
+        <StatusPill status={order.status} className="rounded-full px-3 py-[6px] text-[12px]" />
+        <InfoChip>
+          <Clock3 className="h-4 w-4 text-muted" />
+          {waitLabel}
+        </InfoChip>
+        <span className="text-sm font-semibold text-primary-900">{order.customerName}</span>
+        <span className="text-muted">•</span>
+        <span className="text-[12px] text-muted">
+          <MapPin className="mb-[2px] inline h-4 w-4 text-muted" /> {order.deliveryAddressText}
+        </span>
+        <Badge variant="neutral" className="rounded-full px-2 py-[4px] text-[11px]">
+          {order.items.length} قلم
+        </Badge>
+        {isPrescription && (
+          <Badge variant="warning" className="rounded-full px-2 py-[4px] text-[11px]">
+            نسخه
           </Badge>
-          {isPrescription && (
-            <Badge variant="warning" className="rounded-full px-2 py-[4px] text-[11px]">
-              نسخه
-            </Badge>
-          )}
-          <Badge variant="neutral" className="rounded-full px-2 py-[4px] text-[11px]">
-            {order.items.length} قلم
-          </Badge>
-          <StatusPill status={order.status} className="rounded-full px-3 py-[6px] text-[12px]" />
-        </div>
-        <div className="flex flex-wrap items-center gap-2 text-[13px] font-semibold text-primary-900">
-          <span className="line-clamp-1">{order.customerName}</span>
-          <span className="text-muted">•</span>
-          <span className="text-muted line-clamp-1">
-            <MapPin className="mb-[2px] inline h-4 w-4 text-muted" /> {order.deliveryAddressText}
-          </span>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 text-[12px] text-muted">
-          <InfoChip>
-            <Clock3 className="h-4 w-4 text-muted" />
-            {waitLabel}
-          </InfoChip>
-          <span className="flex items-center gap-1">
-            <CreditCard className="h-4 w-4 text-muted" />
-            {paymentLabels[order.paymentMethod]}
-          </span>
-          <span className="flex items-center gap-1">
-            <Timer className="h-4 w-4 text-muted" />
-            ETA {etaLabel}
-          </span>
-          <span className="flex items-center gap-1">
-            <Package className="h-4 w-4 text-muted" />
-            {order.items.length} قلم
-          </span>
-          {isPrescription && (
-            <Badge variant="warning" className="rounded-full px-2 py-[4px] text-[11px]">
-              نیازمند نسخه
-            </Badge>
-          )}
-        </div>
+        )}
       </div>
-      <div className="flex flex-wrap items-center justify-end gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <div className="text-end">
-          <p className="text-sm text-muted">مبلغ کل</p>
-          <p className="text-xl font-bold text-primary-900">{formatMoney(order.total)}</p>
+          <p className="text-sm font-semibold text-primary-900">{formatMoney(order.total)}</p>
           <p className="text-[12px] text-muted">
-            ثبت در {formatTime(order.createdAt)} {order.etaMinutes ? `• ETA ${etaLabel}` : ""}
+            ETA {etaLabel} • ثبت {formatTime(order.createdAt)}
           </p>
         </div>
-        <Button asChild className="rounded-full px-4" disabled={!canReview}>
+        <Button asChild size="sm" className="rounded-full px-4" disabled={!canReview}>
           <Link href={`/pharmacy-portal/orders/${order.id}`}>بررسی</Link>
         </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-9 w-9 rounded-full p-0">
+              ⋯
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => navigator?.clipboard?.writeText(order.id)}>کپی شناسه</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href={`/pharmacy-portal/orders/${order.id}`}>جزئیات بیشتر</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </Card>
   );

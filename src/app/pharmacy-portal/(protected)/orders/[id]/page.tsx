@@ -325,6 +325,13 @@ export default function PortalOrderDetail({ params }: { params: { id: string } }
             />
           )}
 
+          <CollapsibleSection title="جزئیات پرداخت" defaultOpen={false}>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <InfoRow label="پرداخت" value={paymentLabel} />
+              <InfoRow label="تماس" value={order.customerPhoneMasked ?? order.customerPhone ?? "ثبت نشده"} />
+            </div>
+          </CollapsibleSection>
+
           <SubstitutionSection
             order={order}
             proposal={proposal}
@@ -335,7 +342,9 @@ export default function PortalOrderDetail({ params }: { params: { id: string } }
             actionLoading={actionLoading}
           />
 
-          <AuditLogSection order={order} />
+          <CollapsibleSection title="گزارش تغییرات (Audit Log)" defaultOpen={false}>
+            <AuditLogSection order={order} />
+          </CollapsibleSection>
         </div>
 
         <aside className="space-y-3 lg:sticky lg:top-28">
@@ -801,6 +810,24 @@ function StatusStepper({ order }: { order: Order }) {
     <Card className="rounded-2xl border border-divider bg-surface-1/95 p-4 shadow-soft">
       <p className="mb-2 text-sm font-semibold text-primary-900">گردش وضعیت</p>
       <Stepper steps={steps} />
+    </Card>
+  );
+}
+
+function CollapsibleSection({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <Card className="space-y-2 rounded-2xl border border-divider bg-surface-1/95 p-4 shadow-soft">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between text-start"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span className="text-sm font-semibold text-primary-900">{title}</span>
+        <span className="text-muted text-sm">{open ? "کمتر" : "بیشتر"}</span>
+      </button>
+      {open && <div className="space-y-2">{children}</div>}
     </Card>
   );
 }

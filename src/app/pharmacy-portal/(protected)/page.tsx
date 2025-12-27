@@ -111,16 +111,11 @@ export default function PortalDashboardPage() {
                 </Badge>
               )}
             </div>
-            <p className="text-[12px] text-muted">مرور سریع سفارش‌ها، روند آماده‌سازی و وضعیت ارسال امروز</p>
+            <p className="text-[12px] text-muted">نمای کلی امروز؛ جزئیات فقط هنگام نیاز نمایش داده می‌شوند.</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button asChild size="sm" className="rounded-full">
-              <Link href="/pharmacy-portal/orders">مدیریت سفارش‌ها</Link>
-            </Button>
-            <Button asChild size="sm" variant="ghost" className="rounded-full">
-              <Link href="/pharmacy-portal/prescriptions">بررسی نسخه‌ها</Link>
-            </Button>
-          </div>
+          <Button asChild size="sm" className="rounded-full">
+            <Link href="/pharmacy-portal/orders">مدیریت سفارش‌ها</Link>
+          </Button>
         </div>
       </Card>
 
@@ -128,25 +123,16 @@ export default function PortalDashboardPage() {
         <ErrorState title="خطا در بارگذاری داشبورد" description="ارتباط برقرار نشد." details={error} onRetry={() => loadOrders()} />
       )}
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-4">
         <StatCard title="سفارش‌های فعال" value={activeStatuses.reduce((sum, key) => sum + (stats[key] ?? 0), 0)} loading={loading} tone="info" />
-        <StatCard title="سفارش‌های امروز" value={todayOrders.length} loading={loading} tone="brand" helper={`${clearedToday} مورد بسته شد`} />
+        <StatCard title="سفارش‌های امروز" value={todayOrders.length} loading={loading} tone="brand" helper={`${clearedToday} بسته شد`} />
         <StatCard title="درآمد بالقوه" valueLabel={formatToman(revenue)} loading={loading} tone="success" />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-[1.35fr,1fr]">
-        <ProgressCard
-          loading={loading}
-          cleared={clearedToday}
-          total={todayOrders.length}
-          queue={queueToday}
-          percent={progressPercent}
-          caughtUp={caughtUp}
-        />
-        <EfficiencyCard loading={loading} avgReviewMinutes={avgReviewMinutes} onTimeRate={onTimeRate} />
+        <StatCard title="ETA به‌موقع" valueLabel={onTimeRate ? `${onTimeRate}%` : "نامشخص"} loading={loading} tone="warning" helper="ارسال سر وقت" />
       </div>
 
       <RecentOrders loading={loading} orders={orders.slice(0, 6)} />
+
+      <AlertsCard />
     </div>
   );
 }
@@ -284,7 +270,7 @@ function RecentOrders({ loading, orders }: { loading: boolean; orders: Order[] }
   return (
     <Card className="space-y-3 rounded-2xl border border-divider bg-surface-1/90 p-4 shadow-soft">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-primary-900">سفارش‌های اخیر</p>
+        <p className="text-sm font-semibold text-primary-900">صف سفارش‌ها (۶ مورد جدید)</p>
         <Button asChild variant="ghost" size="sm" className="rounded-full">
           <Link href="/pharmacy-portal/orders">مشاهده همه</Link>
         </Button>
@@ -315,6 +301,20 @@ function RecentOrders({ loading, orders }: { loading: boolean; orders: Order[] }
             </div>
           </div>
         ))}
+    </Card>
+  );
+}
+
+function AlertsCard() {
+  return (
+    <Card className="space-y-2 rounded-2xl border border-divider bg-surface-1/90 p-4 shadow-soft">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-semibold text-primary-900">هشدارهای امروز</p>
+        <Badge variant="outline" className="rounded-full px-2 py-[6px] text-[12px]">
+          حداکثر ۳ مورد
+        </Badge>
+      </div>
+      <p className="text-sm text-muted">هشداری ثبت نشده است.</p>
     </Card>
   );
 }
