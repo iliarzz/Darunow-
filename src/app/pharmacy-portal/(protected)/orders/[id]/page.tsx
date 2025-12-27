@@ -23,6 +23,8 @@ import type { Order, OrderStatus } from "@/lib/orders/types";
 import { ORDER_STATUS_META } from "@/constants/status";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { hasPermission } from "@/lib/rbac/permissions";
+import { usePortalSession } from "@/stores/portal-session";
 import { Clock3, MapPin, Maximize2, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 
 const etaPresets = [20, 30, 45, 60, 75];
@@ -47,6 +49,7 @@ const paymentStatusLabels: Record<string, string> = {
 export default function PortalOrderDetail({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { toast } = useToast();
+  const session = usePortalSession();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -97,6 +100,10 @@ export default function PortalOrderDetail({ params }: { params: { id: string } }
   }, [loadNextOrder, order?.status]);
 
   const availableNext = useMemo(() => (order ? nextStatuses(order.status) : []), [order]);
+  const canAcceptReject =
+    (session?.permissions?.includes("ORDERS_ACCEPT_REJECT") ?? false) || (session ? hasPermission(session.role, "ORDERS_ACCEPT_REJECT") : true);
+  const canUpdateStatus =
+    (session?.permissions?.includes("ORDERS_UPDATE_STATUS") ?? false) || (session ? hasPermission(session.role, "ORDERS_UPDATE_STATUS") : true);
 
   const handleAccept = useCallback(async () => {
     if (!order) return;
@@ -225,7 +232,7 @@ export default function PortalOrderDetail({ params }: { params: { id: string } }
   const paymentLabel = `${paymentMethodLabels[order.paymentMethod] ?? order.paymentMethod} • ${paymentStatusLabels[order.paymentStatus] ?? order.paymentStatus}`;
 
   return (
-    <div className="space-y-4 pb-16">
+    <div className="space-y-4 pb-24 lg:pb-16">
       <Card className="rounded-2xl border border-divider bg-surface-1/95 p-4 shadow-soft">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
@@ -340,17 +347,37 @@ export default function PortalOrderDetail({ params }: { params: { id: string } }
             rejectReason={rejectReason}
             setRejectReason={setRejectReason}
             handleReject={handleReject}
-            availableNext={availableNext}
+            availableNext={canUpdateStatus ? availableNext : []}
             handleStatus={handleStatus}
             nextOrderId={nextOrderId}
             goNext={nextOrderId ? () => router.push(`/pharmacy-portal/orders/${nextOrderId}`) : undefined}
             actionLoading={actionLoading}
             waitingLabel={waitingLabel}
+            canAcceptReject={canAcceptReject}
+            canUpdateStatus={canUpdateStatus}
           />
 
           <StatusStepper order={order} />
         </aside>
       </div>
+
+      {order && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-divider/80 bg-surface-1/95 p-3 shadow-soft lg:hidden">
+          <div className="mx-auto flex max-w-6xl items-center gap-3">
+            <Button className="flex-1 rounded-full" disabled={actionLoading || !canAcceptReject} onClick={handleAccept}>
+              تایید
+            </Button>
+            <Button
+              variant="ghost"
+              className="flex-1 rounded-full border border-divider"
+              disabled={actionLoading || !canAcceptReject}
+              onClick={handleReject}
+            >
+              رد
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -369,6 +396,8 @@ function ActionRail({
   goNext,
   actionLoading,
   waitingLabel,
+  canAcceptReject,
+  canUpdateStatus,
 }: {
   order: Order;
   etaMinutes: number;
@@ -383,6 +412,8 @@ function ActionRail({
   goNext?: () => void;
   actionLoading: boolean;
   waitingLabel: string;
+  canAcceptReject: boolean;
+  canUpdateStatus: boolean;
 }) {
   return (
     <Card className="space-y-4 rounded-2xl border border-divider bg-surface-1/95 p-4 shadow-soft">
@@ -402,68 +433,72 @@ function ActionRail({
           </Badge>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {etaPresets.map((m) => (
-            <Chip key={m} selected={etaMinutes === m} onClick={() => setEtaMinutes(m)}>
-              {m} دقیقه
-            </Chip>
-          ))}
-          <Input
-            type="number"
-            value={etaMinutes}
-            onChange={(e) => setEtaMinutes(Number(e.target.value))}
-            className="h-10 w-24 rounded-full border-divider bg-surface-1 text-center"
-          />
+            {etaPresets.map((m) => (
+              <Chip key={m} selected={etaMinutes === m} onClick={() => setEtaMinutes(m)}>
+                {m} دقیقه
+              </Chip>
+            ))}
+            <Input
+              type="number"
+              value={etaMinutes}
+              onChange={(e) => setEtaMinutes(Number(e.target.value))}
+              className="h-10 w-24 rounded-full border-divider bg-surface-1 text-center"
+            />
+          </div>
+          <Button onClick={handleAccept} disabled={actionLoading || !canAcceptReject} className="w-full rounded-full">
+            تایید سفارش
+          </Button>
         </div>
-        <Button onClick={handleAccept} disabled={actionLoading} className="w-full rounded-full">
-          تایید سفارش
-        </Button>
-      </div>
 
-      <div className="space-y-2 rounded-xl border border-divider bg-surface-2/90 p-3">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-primary-900">رد سفارش</p>
-          <Badge variant="neutral" className="rounded-full px-3 py-[4px] text-[11px]">
-            کلید R
-          </Badge>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {rejectPresets.map((reason) => (
-            <Chip key={reason} selected={rejectReason === reason} onClick={() => setRejectReason(reason)}>
-              {reason}
-            </Chip>
-          ))}
-        </div>
-        <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="توضیح کوتاه" />
-        <Button variant="ghost" onClick={handleReject} disabled={actionLoading} className="w-full rounded-full">
-          رد سفارش
-        </Button>
-      </div>
-
-      {availableNext.length > 0 && (
         <div className="space-y-2 rounded-xl border border-divider bg-surface-2/90 p-3">
-          <p className="text-sm font-semibold text-primary-900">تغییر وضعیت</p>
-          <div className="flex flex-wrap gap-2">
-            {availableNext.map((status) => (
-              <Button
-                key={status}
-                variant="secondary"
-                size="sm"
-                className="rounded-full"
-                disabled={actionLoading}
-                onClick={() => handleStatus(status)}
-              >
-                {ORDER_STATUS_META[status]?.label ?? status}
-              </Button>
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-primary-900">رد سفارش</p>
+            <Badge variant="neutral" className="rounded-full px-3 py-[4px] text-[11px]">
+              کلید R
+            </Badge>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {rejectPresets.map((reason) => (
+              <Chip key={reason} selected={rejectReason === reason} onClick={() => setRejectReason(reason)}>
+                {reason}
+              </Chip>
             ))}
           </div>
+          <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="توضیح کوتاه" />
+          <Button variant="ghost" onClick={handleReject} disabled={actionLoading || !canAcceptReject} className="w-full rounded-full">
+            رد سفارش
+          </Button>
         </div>
-      )}
+
+        {availableNext.length > 0 && canUpdateStatus && (
+          <div className="space-y-2 rounded-xl border border-divider bg-surface-2/90 p-3">
+            <p className="text-sm font-semibold text-primary-900">تغییر وضعیت</p>
+            <div className="flex flex-wrap gap-2">
+              {availableNext.map((status) => (
+                <Button
+                  key={status}
+                  variant="secondary"
+                  size="sm"
+                  className="rounded-full"
+                  disabled={actionLoading}
+                  onClick={() => handleStatus(status)}
+                >
+                  {ORDER_STATUS_META[status]?.label ?? status}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
 
       {nextOrderId && goNext && (
         <Button variant="secondary" className="w-full rounded-full" onClick={goNext}>
           سفارش بعدی (N)
         </Button>
       )}
+
+      <Button variant="outline" className="w-full rounded-full" onClick={() => window.print()}>
+        چاپ پک‌لیست (A5)
+      </Button>
     </Card>
   );
 }

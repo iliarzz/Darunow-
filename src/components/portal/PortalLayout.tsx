@@ -84,6 +84,11 @@ export function PortalLayout({
   const [online, setOnline] = useState(true);
   const [search, setSearch] = useState("");
 
+  const can = useMemo(() => {
+    const own = new Set(permissions ?? []);
+    return (perm?: Permission) => !perm || own.has(perm) || hasPermission(role, perm);
+  }, [permissions, role]);
+
   useEffect(() => {
     const stored = window.localStorage.getItem("darunow.portal.navCollapsed");
     if (stored) setCollapsed(stored === "1");
@@ -123,8 +128,8 @@ export function PortalLayout({
   }, []);
 
   const allowedNav = useMemo(
-    () => navItems.filter((item) => !item.permission || hasPermission(role, item.permission)),
-    [permissions, role],
+    () => navItems.filter((item) => can(item.permission)),
+    [can],
   );
 
   const handleSearch = (value?: string) => {

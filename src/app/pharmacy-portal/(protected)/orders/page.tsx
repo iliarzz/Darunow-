@@ -15,10 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusPill } from "@/components/orders/status-pill";
 import { portalApi } from "@/lib/portal/api";
+import { hasPermission } from "@/lib/rbac/permissions";
 import type { Order, OrderStatus, OrderType, PaymentMethod } from "@/lib/orders/types";
 import { formatMoney, formatOrderId, formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Clock3, CreditCard, MapPin, Package, Pill, Search, Timer } from "lucide-react";
+import { usePortalSession } from "@/stores/portal-session";
 
 const tabs: { key: string; label: string; statuses: OrderStatus[] }[] = [
   { key: "new", label: "جدید", statuses: ["PLACED", "PHARMACY_REVIEW"] },
@@ -46,6 +48,7 @@ const timeWindowOptions = [
 ];
 
 export default function PortalOrdersPage() {
+  const session = usePortalSession();
   const searchParams = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,6 +151,9 @@ export default function PortalOrdersPage() {
     setPayment("");
     setTimeWindow("all");
   };
+
+  const canReviewOrders =
+    (session?.permissions?.includes("ORDERS_VIEW") ?? false) || (session ? hasPermission(session.role, "ORDERS_VIEW") : true);
 
   return (
     <div className="space-y-4 pb-16">
@@ -267,7 +273,7 @@ export default function PortalOrdersPage() {
       {!loading && !error && filtered.length > 0 && (
         <div className="space-y-2">
           {filtered.map((order) => (
-            <OrderRow key={order.id} order={order} highlight={flashIds.includes(order.id)} />
+            <OrderRow key={order.id} order={order} highlight={flashIds.includes(order.id)} canReview={canReviewOrders} />
           ))}
         </div>
       )}
@@ -275,7 +281,7 @@ export default function PortalOrdersPage() {
   );
 }
 
-function OrderRow({ order, highlight }: { order: Order; highlight?: boolean }) {
+function OrderRow({ order, highlight, canReview }: { order: Order; highlight?: boolean; canReview: boolean }) {
   const waitLabel = useMemo(() => formatWait(order.createdAt), [order.createdAt]);
   const etaLabel = order.etaMinutes ? `${order.etaMinutes} دقیقه` : "در انتظار تعیین";
   const isPrescription = order.type === "PRESCRIPTION";
@@ -342,7 +348,7 @@ function OrderRow({ order, highlight }: { order: Order; highlight?: boolean }) {
             ثبت در {formatTime(order.createdAt)} {order.etaMinutes ? `• ETA ${etaLabel}` : ""}
           </p>
         </div>
-        <Button asChild className="rounded-full px-4">
+        <Button asChild className="rounded-full px-4" disabled={!canReview}>
           <Link href={`/pharmacy-portal/orders/${order.id}`}>بررسی</Link>
         </Button>
       </div>

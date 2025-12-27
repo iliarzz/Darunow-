@@ -1,0 +1,108 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { Button } from "@/components/ui/button";
+import { portalApi } from "@/lib/portal/api";
+import { formatToman } from "@/lib/money";
+
+type Settlement = { id: string; period: string; gross: number; net: number; fees: number; refunds?: number; disputes?: number };
+
+export default function PortalFinancePage() {
+  const [settlements, setSettlements] = useState<Settlement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await portalApi.listSettlements();
+        setSettlements(data as Settlement[]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "خطا در دریافت اطلاعات مالی");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const totals = settlements.reduce(
+    (acc, s) => {
+      acc.gross += s.gross ?? 0;
+      acc.net += s.net ?? 0;
+      acc.fees += s.fees ?? 0;
+      acc.refunds += s.refunds ?? 0;
+      acc.disputes += s.disputes ?? 0;
+      return acc;
+    },
+    { gross: 0, net: 0, fees: 0, refunds: 0, disputes: 0 },
+  );
+
+  return (
+    <div className="space-y-4 pb-16">
+      <Card className="rounded-2xl border border-divider bg-surface-1/95 p-4 shadow-soft">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm text-muted">تسویه و مالی</p>
+            <h1 className="text-2xl font-bold text-primary-900">وضعیت مالی</h1>
+          </div>
+          <Button asChild size="sm" variant="secondary" className="rounded-full">
+            <a href="/api/portal/settlements?download=1">دانلود گزارش</a>
+          </Button>
+        </div>
+      </Card>
+
+      <div className="grid gap-3 md:grid-cols-4">
+        <MetricCard label="ناخالص" value={formatToman(totals.gross)} />
+        <MetricCard label="کارمزد" value={formatToman(totals.fees)} />
+        <MetricCard label="خالص قابل تسویه" value={formatToman(totals.net)} />
+        <MetricCard label="بازپرداخت/اختلاف" value={formatToman(totals.refunds + totals.disputes)} />
+      </div>
+
+      {error && <ErrorState title="خطا در بارگذاری مالی" description="لطفا اتصال را بررسی کنید." details={error} onRetry={() => window.location.reload()} />}
+      {loading && <FinanceSkeleton />}
+      {!loading && !error && settlements.length === 0 && <EmptyState title="تسویه‌ای ثبت نشده" />}
+      <div className="grid gap-3 md:grid-cols-2">
+        {settlements.map((s) => (
+          <Card key={s.id} className="space-y-3 rounded-2xl border border-divider bg-surface-1/90 p-4 shadow-soft">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-primary-900">دوره {s.period}</p>
+              <Badge variant="outline" className="rounded-full px-2 py-[6px] text-[12px]">
+                {s.id}
+              </Badge>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <p className="text-sm text-muted">ناخالص: {formatToman(s.gross)}</p>
+              <p className="text-sm text-muted">کارمزد: {formatToman(s.fees)}</p>
+              <p className="text-sm text-muted">بازپرداخت: {formatToman(s.refunds ?? 0)}</p>
+              <p className="text-sm text-muted">اختلاف/Disputes: {formatToman(s.disputes ?? 0)}</p>
+            </div>
+            <p className="text-lg font-bold text-primary-900">خالص: {formatToman(s.net)}</p>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FinanceSkeleton() {
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      {Array.from({ length: 2 }).map((_, i) => (
+        <Card key={i} className="rounded-2xl border border-divider bg-surface-1/80 p-4">
+          <Skeleton className="h-4 w-32 rounded-full" />
+          <Skeleton className="mt-2 h-3 w-28 rounded-full" />
+          <Skeleton className="mt-2 h-6 w-24 rounded-full" />
+        </Card>
+      ))}
+    </div>
+  );
+}
