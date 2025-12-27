@@ -381,5 +381,6 @@ function formatWait(createdAt: number): string {
   const minutes = Math.max(1, Math.round((Date.now() - createdAt) / 60000));
   if (minutes < 60) return `${minutes.toLocaleString("fa-IR")} دقیقه در انتظار`;
   const hours = minutes / 60;
-  return `${hours.toFixed(1).toLocaleString("fa-IR")} ساعت در انتظار`;
+  const hoursLabel = hours.toLocaleString("fa-IR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return `${hoursLabel} ساعت در انتظار`;
 }

@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { InfoChip } from "@/components/ui/InfoChip";
-import { Stepper } from "@/components/ui/stepper";
+import { Stepper, type StepItem, type StepState } from "@/components/ui/stepper";
 import { StatusPill } from "@/components/orders/status-pill";
 import { portalApi } from "@/lib/portal/api";
 import { formatDate, formatMoney, formatOrderId, formatTime } from "@/lib/format";
@@ -552,16 +552,36 @@ function PrescriptionViewer({
             )}
           </div>
           <div className="absolute right-2 top-2 flex gap-1">
-            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setViewer({ ...viewer, zoom: Math.min(zoom + 0.2, 3) })}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 w-9 rounded-full p-0"
+              onClick={() => setViewer({ ...viewer, zoom: Math.min(zoom + 0.2, 3) })}
+            >
               <ZoomIn className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setViewer({ ...viewer, zoom: Math.max(1, zoom - 0.2) })}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 w-9 rounded-full p-0"
+              onClick={() => setViewer({ ...viewer, zoom: Math.max(1, zoom - 0.2) })}
+            >
               <ZoomOut className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setViewer({ ...viewer, rotate: rotate + 90 })}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 w-9 rounded-full p-0"
+              onClick={() => setViewer({ ...viewer, rotate: rotate + 90 })}
+            >
               <RotateCcw className="h-4 w-4" />
             </Button>
-            <Button variant="secondary" size="icon" className="rounded-full" onClick={() => setViewer({ ...viewer, open: true, image: current })}>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-9 w-9 rounded-full p-0"
+              onClick={() => setViewer({ ...viewer, open: true, image: current })}
+            >
               <Maximize2 className="h-4 w-4" />
             </Button>
           </div>
@@ -727,7 +747,7 @@ function AuditLogSection({ order }: { order: Order }) {
 }
 
 function StatusStepper({ order }: { order: Order }) {
-  const steps = useMemo(() => {
+  const steps: StepItem[] = useMemo(() => {
     if (order.status === "CANCELED" || order.status === "PHARMACY_REJECTED") {
       return [
         { title: "ثبت سفارش", state: "completed" as const },
@@ -737,7 +757,7 @@ function StatusStepper({ order }: { order: Order }) {
     const currentIndex = statusFlow.indexOf(order.status);
     return statusFlow.map((status, idx) => {
       const meta = ORDER_STATUS_META[status];
-      const state = idx < currentIndex ? "completed" : idx === currentIndex ? "active" : "pending";
+      const state: StepState = idx < currentIndex ? "completed" : idx === currentIndex ? "active" : "pending";
       return { title: meta?.label ?? status, state, description: meta?.tone === "warning" ? "نیازمند اقدام" : undefined };
     });
   }, [order.internalNote, order.status]);
@@ -782,5 +802,6 @@ function formatWait(createdAt: number): string {
   const minutes = Math.max(1, Math.round((Date.now() - createdAt) / 60000));
   if (minutes < 60) return `${minutes.toLocaleString("fa-IR")} دقیقه در انتظار`;
   const hours = minutes / 60;
-  return `${hours.toFixed(1).toLocaleString("fa-IR")} ساعت در انتظار`;
+  const hoursLabel = hours.toLocaleString("fa-IR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return `${hoursLabel} ساعت در انتظار`;
 }
