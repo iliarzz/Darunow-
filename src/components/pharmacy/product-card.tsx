@@ -56,33 +56,37 @@ export function ProductCard({ product, index }: { product: Product; index: numbe
     >
       <Card interactive className="h-full overflow-hidden border border-border bg-surface-1 p-3">
         <div className="flex gap-3">
-          <div className="w-28 flex-none">
-            <MediaPlaceholder aspect="square" />
+          <div className="relative w-28 flex-none overflow-hidden rounded-2xl border border-divider">
+            <MediaPlaceholder aspect="square">
+              <div className="absolute inset-0 grid place-items-center bg-gradient-to-br from-accent-200/80 via-surface-2 to-surface-1">
+                <span className="text-lg font-bold text-primary-900">{product.nameFa.slice(0, 2)}</span>
+              </div>
+            </MediaPlaceholder>
+            {product.rxRequired && (
+              <Badge variant="warning" className="absolute end-1 top-1 rounded-full px-2 py-[4px] text-[11px]">
+                نسخه
+              </Badge>
+            )}
           </div>
           <div className="flex flex-1 flex-col gap-2">
             <div className="flex items-start justify-between gap-2">
-              <div>
+              <div className="space-y-1">
                 <p className="text-[15px] font-semibold text-primary-900">{product.nameFa}</p>
                 <p className="text-sm text-muted">{product.dosageFa}</p>
+                <p className="text-xs text-muted">{product.categoryFa}</p>
               </div>
-              {product.rxRequired && (
-                <Badge variant="warning" className="px-2 py-1 text-[11px]">
-                  نیازمند نسخه
-                </Badge>
-              )}
+              <Badge variant="neutral" className="rounded-full px-2 py-[4px] text-[11px]">
+                {stockLabel}
+              </Badge>
             </div>
             <p className="text-sm text-primary-900/80 line-clamp-2">{product.descriptionFa}</p>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-              <Badge variant="neutral">{stockLabel}</Badge>
-              <Badge variant="info">{product.categoryFa}</Badge>
-            </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-lg font-semibold text-primary-900">
                 {formatMoney(product.priceToman)}
                 {product.rxRequired && <ShieldAlert className="h-4 w-4 text-warning" />}
               </div>
               {qty > 0 ? (
-                <div className="flex items-center gap-2 rounded-full border border-border bg-surface-1 px-2 py-1">
+                <div className="flex items-center gap-1 rounded-full border border-border bg-surface-1 px-2 py-1">
                   <button
                     className="grid h-8 w-8 place-items-center rounded-full text-primary-900 hover:bg-surface-3"
                     onClick={() => updateQty(qty - 1)}
