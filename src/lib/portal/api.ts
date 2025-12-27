@@ -65,6 +65,18 @@ export const portalApi = {
   async listInventory(): Promise<any[]> {
     return request<{ inventory: any[] }>("/api/portal/inventory").then((r) => r.inventory ?? []);
   },
+  async createInventoryItem(payload: any): Promise<any> {
+    return request<{ item: any }>("/api/portal/inventory", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }).then((r) => r.item ?? payload);
+  },
+  async updateInventoryItem(productId: string, payload: any): Promise<any> {
+    return request<{ item: any }>(`/api/portal/inventory/${productId}`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }).then((r) => r.item ?? payload);
+  },
   async adjustInventory(productId: string, delta: number): Promise<any> {
     return request<{ item: any }>("/api/portal/inventory", {
       method: "POST",
