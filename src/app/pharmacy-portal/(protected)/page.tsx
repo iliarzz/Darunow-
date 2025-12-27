@@ -164,15 +164,13 @@ function StatCard({
             : "text-primary-800 bg-surface-2";
   return (
     <Card className="rounded-2xl border border-divider bg-surface-1/90 p-4 shadow-soft">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-primary-900">{title}</p>
-        <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${toneClass}`}>{helper ?? "به‌روز"}</span>
-      </div>
+      <p className="text-sm text-muted">{title}</p>
       {loading ? (
-        <Skeleton className="mt-3 h-8 w-24 rounded-xl" />
+        <Skeleton className="mt-2 h-8 w-24 rounded-xl" />
       ) : (
-        <p className="mt-3 text-2xl font-bold text-primary-900">{valueLabel ?? value?.toLocaleString("fa-IR") ?? "۰"}</p>
+        <p className="mt-2 text-2xl font-bold text-primary-900">{valueLabel ?? value?.toLocaleString("fa-IR") ?? "—"}</p>
       )}
+      {helper && <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${toneClass}`}>{helper}</span>}
     </Card>
   );
 }
