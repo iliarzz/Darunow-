@@ -5,15 +5,12 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Chip } from "@/components/ui/chip";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { InfoChip } from "@/components/ui/InfoChip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { portalApi } from "@/lib/portal/api";
 import type { Order } from "@/lib/orders/types";
@@ -28,19 +25,15 @@ const reviewTabs = [
   { key: "approved", label: "تایید شده", filter: (o: Order) => o.prescription?.reviewStatus === "APPROVED" },
 ];
 
-const rxTemplates = ["نسخه واضح‌تر ارسال شود.", "داروی جایگزین تایید شود.", "ارسال کد رهگیری نسخه در پیام.", "به شرط موجودی داروخانه تایید می‌شود."];
 const SLA_MINUTES = 20;
 
 export default function PortalPrescriptionsPage() {
   const session = usePortalSession();
-  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("all");
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
-  const [submitting, setSubmitting] = useState<string | null>(null);
-  const [noteMap, setNoteMap] = useState<Record<string, string>>({});
   const [viewer, setViewer] = useState<{ open: boolean; image?: string; zoom: number; rotate: number }>({ open: false, zoom: 1, rotate: 0 });
 
   const canReview =
@@ -70,27 +63,6 @@ export default function PortalPrescriptionsPage() {
   }, []);
 
   const filtered = useMemo(() => orders.filter((o) => reviewTabs.find((t) => t.key === tab)?.filter(o) ?? true), [orders, tab]);
-
-  const handleAction = useCallback(
-    async (orderId: string, status: "APPROVED" | "NEED_CLARIFICATION" | "REJECTED") => {
-      if (!canReview) {
-        toast({ title: "دسترسی محدود", description: "شما مجاز به اقدام روی نسخه‌ها نیستید.", variant: "destructive" });
-        return;
-      }
-      setSubmitting(orderId);
-      try {
-        const note = noteMap[orderId];
-        const updated = await portalApi.reviewPrescription(orderId, status, note || undefined);
-        setOrders((prev) => prev.map((o) => (o.id === orderId ? updated : o)));
-        toast({ title: "ثبت شد", description: `وضعیت نسخه: ${status}` });
-      } catch (err) {
-        toast({ title: "خطا", description: err instanceof Error ? err.message : "خطا در ثبت اقدام", variant: "destructive" });
-      } finally {
-        setSubmitting(null);
-      }
-    },
-    [canReview, noteMap, toast],
-  );
 
   const openViewer = (img: string) => setViewer({ open: true, image: img, zoom: 1, rotate: 0 });
 
@@ -130,20 +102,12 @@ export default function PortalPrescriptionsPage() {
                 const waitLabel = formatWait(order.createdAt, now);
                 const slaRemainingMs = Math.max(0, order.createdAt + SLA_MINUTES * 60000 - now);
                 const slaMinutesLeft = Math.ceil(slaRemainingMs / 60000);
-                const note = noteMap[order.id] ?? "";
                 return (
                   <Card
                     key={order.id}
-                    className="space-y-3 rounded-2xl border border-divider bg-surface-1/90 p-4 shadow-soft"
+                    className="flex flex-col gap-3 rounded-2xl border border-divider bg-surface-1/90 p-4 shadow-soft md:flex-row md:items-center md:justify-between"
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="space-y-1">
-                        <p className="text-sm text-muted">
-                          سفارش <span className="ltr inline-flex">{order.id}</span>
-                        </p>
-                        <p className="text-lg font-bold text-primary-900">{order.customerName}</p>
-                        <p className="text-[12px] text-muted">{order.deliveryAddressText}</p>
-                      </div>
+                    <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="outline" className="rounded-full px-3 py-[6px] text-[12px]">
                           {prescription?.reviewStatus ?? "PENDING_REVIEW"}
@@ -156,73 +120,42 @@ export default function PortalPrescriptionsPage() {
                           SLA: {slaRemainingMs === 0 ? "به اتمام رسید" : `${slaMinutesLeft} دقیقه`}
                         </Badge>
                       </div>
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted">
+                          سفارش <span className="ltr inline-flex">{order.id}</span>
+                        </p>
+                        <p className="text-lg font-bold text-primary-900">{order.customerName}</p>
+                        <p className="text-[12px] text-muted">{order.deliveryAddressText}</p>
+                      </div>
+                      {prescription?.imageUrls?.length ? (
+                        <div className="flex items-center gap-2">
+                          {prescription.imageUrls.slice(0, 2).map((img) => (
+                            <button
+                              key={img}
+                              type="button"
+                              className="h-16 w-20 overflow-hidden rounded-xl border border-divider bg-surface-2 transition hover:ring-2 hover:ring-primary-500"
+                              onClick={() => openViewer(img)}
+                            >
+                              <img src={img} alt="rx" className="h-full w-full object-cover" />
+                            </button>
+                          ))}
+                          {prescription.imageUrls.length > 2 && (
+                            <Badge variant="outline" className="rounded-full px-3 py-[6px] text-[12px]">
+                              +{prescription.imageUrls.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 rounded-xl border border-divider bg-surface-2 px-3 py-2 text-sm text-muted">
+                          <AlertTriangle className="h-4 w-4 text-warning" /> تصویر نسخه موجود نیست.
+                        </div>
+                      )}
                     </div>
-
-                    {prescription?.imageUrls?.length ? (
-                      <div className="flex flex-wrap items-center gap-2">
-                        {prescription.imageUrls.slice(0, 3).map((img) => (
-                          <button
-                            key={img}
-                            type="button"
-                            className="h-20 w-24 overflow-hidden rounded-xl border border-divider bg-surface-2 transition hover:ring-2 hover:ring-primary-500"
-                            onClick={() => openViewer(img)}
-                          >
-                            <img src={img} alt="rx" className="h-full w-full object-cover" />
-                          </button>
-                        ))}
-                        {prescription.imageUrls.length > 3 && (
-                          <Badge variant="outline" className="rounded-full px-3 py-[6px] text-[12px]">
-                            +{prescription.imageUrls.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 rounded-xl border border-divider bg-surface-2 px-3 py-2 text-sm text-muted">
-                        <AlertTriangle className="h-4 w-4 text-warning" /> تصویر نسخه موجود نیست.
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <p className="text-sm font-semibold text-primary-900">الگو و توضیح</p>
-                      <div className="flex flex-wrap gap-2">
-                        {rxTemplates.map((tpl) => (
-                          <Chip key={tpl} onClick={() => setNoteMap((prev) => ({ ...prev, [order.id]: tpl }))} selected={note === tpl}>
-                            {tpl}
-                          </Chip>
-                        ))}
-                      </div>
-                      <Textarea
-                        value={note}
-                        onChange={(e) => setNoteMap((prev) => ({ ...prev, [order.id]: e.target.value }))}
-                        placeholder="پیام برای بیمار یا توضیح داخلی"
-                      />
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button size="sm" className="rounded-full" disabled={submitting === order.id || !canReview} onClick={() => handleAction(order.id, "APPROVED")}>
-                        تایید
+                    <div className="flex flex-wrap items-center gap-2 md:flex-col md:items-end md:gap-3">
+                      <Button asChild className="rounded-full" disabled={!canReview}>
+                        <Link href={`/pharmacy-portal/orders/${order.id}`}>بررسی</Link>
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className="rounded-full"
-                        disabled={submitting === order.id || !canReview}
-                        onClick={() => handleAction(order.id, "NEED_CLARIFICATION")}
-                      >
-                        نیاز به توضیح
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="rounded-full"
-                        disabled={submitting === order.id || !canReview}
-                        onClick={() => handleAction(order.id, "REJECTED")}
-                      >
-                        رد
-                      </Button>
-                      <Button asChild size="sm" variant="ghost" className="ms-auto rounded-full">
-                        <Link href={`/pharmacy-portal/orders/${order.id}`}>جزئیات سفارش</Link>
-                      </Button>
+                      <p className="text-[12px] text-muted">تمام اقدامات در صفحه بررسی انجام می‌شود.</p>
                     </div>
                   </Card>
                 );
