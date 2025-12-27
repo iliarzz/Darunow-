@@ -8,21 +8,34 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Filter } from "lucide-react";
 import { portalApi } from "@/lib/portal/api";
 import { formatToman } from "@/lib/money";
 
 type Settlement = { id: string; period: string; gross: number; net: number; fees: number; refunds?: number; disputes?: number; status?: string };
+type Tx = { id: string; amount: number; method: string; at: number; type: "PAYMENT" | "REFUND" };
+type Refund = { id: string; orderId: string; amount: number; status: string; reason?: string };
 
 export default function PortalFinancePage() {
   const [settlements, setSettlements] = useState<Settlement[]>([]);
+  const [transactions] = useState<Tx[]>([
+    { id: "tx-01", amount: 480000, method: "online", at: Date.now() - 3600 * 1000, type: "PAYMENT" },
+    { id: "tx-02", amount: -120000, method: "cash", at: Date.now() - 7200 * 1000, type: "REFUND" },
+  ]);
+  const [refunds] = useState<Refund[]>([
+    { id: "rf-01", orderId: "ord-223", amount: 120000, status: "در انتظار", reason: "موجودی ناقص" },
+  ]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Settlement | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [periodFilter, setPeriodFilter] = useState("all");
+  const [tab, setTab] = useState("settlements");
+  const [timeFilter, setTimeFilter] = useState("all");
+  const [paymentFilter, setPaymentFilter] = useState("all");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,10 +72,19 @@ export default function PortalFinancePage() {
   }, [settlements]);
 
   const filteredSettlements = useMemo(() => {
-    if (periodFilter === "all") return settlements;
-    if (periodFilter === "recent") return settlements.slice(0, 6);
-    return settlements.filter((s) => (s.status ?? "").toLowerCase().includes(periodFilter.toLowerCase()));
-  }, [periodFilter, settlements]);
+    let base = settlements;
+    if (timeFilter === "recent") base = base.slice(0, 6);
+    if (periodFilter !== "all") {
+      base = base.filter((s) => (s.status ?? "").toLowerCase().includes(periodFilter.toLowerCase()));
+    }
+    return base;
+  }, [periodFilter, settlements, timeFilter]);
+
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((t) => (paymentFilter === "all" ? true : t.method === paymentFilter));
+  }, [paymentFilter, transactions]);
+
+  const filteredRefunds = useMemo(() => refunds, [refunds]);
 
   return (
     <div className="space-y-4 pb-16">
@@ -80,28 +102,45 @@ export default function PortalFinancePage() {
                   <Filter className="me-1 h-4 w-4" /> فیلترها
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-60">
-                <div className="space-y-2 text-sm">
-                  <label className="flex items-center gap-2">
-                    <input type="radio" name="period" value="all" checked={periodFilter === "all"} onChange={() => setPeriodFilter("all")} />
-                    همه دوره‌ها
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="radio" name="period" value="recent" checked={periodFilter === "recent"} onChange={() => setPeriodFilter("recent")} />
-                    ۶ دوره اخیر
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="radio" name="period" value="paid" checked={periodFilter === "paid"} onChange={() => setPeriodFilter("paid")} />
-                    فقط پرداخت‌شده
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="radio" name="period" value="pending" checked={periodFilter === "pending"} onChange={() => setPeriodFilter("pending")} />
-                    در انتظار
-                  </label>
-                  <Button variant="ghost" className="w-full rounded-full" onClick={() => setPeriodFilter("all")}>
-                    پاک‌سازی
-                  </Button>
+              <PopoverContent align="end" className="w-72 space-y-2 text-sm">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted">بازه زمانی</p>
+                  {["all", "recent", "month"].map((v) => (
+                    <label key={v} className="flex items-center gap-2">
+                      <input type="radio" name="time" value={v} checked={timeFilter === v} onChange={() => setTimeFilter(v)} />
+                      {v === "all" ? "همه دوره‌ها" : v === "recent" ? "۶ دوره اخیر" : "ماه جاری"}
+                    </label>
+                  ))}
                 </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted">وضعیت تسویه</p>
+                  {["all", "paid", "pending"].map((v) => (
+                    <label key={v} className="flex items-center gap-2">
+                      <input type="radio" name="period" value={v} checked={periodFilter === v} onChange={() => setPeriodFilter(v)} />
+                      {v === "all" ? "همه" : v === "paid" ? "پرداخت‌شده" : "در انتظار"}
+                    </label>
+                  ))}
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted">روش پرداخت</p>
+                  {["all", "online", "cash"].map((v) => (
+                    <label key={v} className="flex items-center gap-2">
+                      <input type="radio" name="payment" value={v} checked={paymentFilter === v} onChange={() => setPaymentFilter(v)} />
+                      {v === "all" ? "همه" : v === "online" ? "آنلاین" : "حضوری"}
+                    </label>
+                  ))}
+                </div>
+                <Button
+                  variant="ghost"
+                  className="w-full rounded-full"
+                  onClick={() => {
+                    setPeriodFilter("all");
+                    setTimeFilter("all");
+                    setPaymentFilter("all");
+                  }}
+                >
+                  پاک‌سازی
+                </Button>
               </PopoverContent>
             </Popover>
             <Button asChild size="sm" variant="secondary" className="rounded-full">
@@ -137,47 +176,115 @@ export default function PortalFinancePage() {
       {error && <ErrorState title="خطا در بارگذاری مالی" description="لطفا اتصال را بررسی کنید." details={error} onRetry={() => window.location.reload()} />}
       {loading && <FinanceSkeleton />}
       {!loading && !error && settlements.length === 0 && <EmptyState title="تسویه‌ای ثبت نشده" />}
-      <div className="grid gap-3 md:grid-cols-2">
-        {filteredSettlements.map((s) => (
-          <Card key={s.id} className="space-y-3 rounded-2xl border border-divider bg-surface-1/90 p-4 shadow-soft">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-primary-900">دوره {s.period}</p>
-              <Badge variant="outline" className="rounded-full px-2 py-[6px] text-[12px]">
-                {s.id}
-              </Badge>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <p className="text-sm text-muted">ناخالص: {formatToman(s.gross)}</p>
-              <p className="text-sm text-muted">کارمزد: {formatToman(s.fees)}</p>
-              <p className="text-sm text-muted">بازپرداخت: {formatToman(s.refunds ?? 0)}</p>
-              <p className="text-sm text-muted">اختلاف/Disputes: {formatToman(s.disputes ?? 0)}</p>
-            </div>
-            <div className="flex items-center justify-between">
-              <p className="text-lg font-bold text-primary-900">خالص: {formatToman(s.net)}</p>
-              <Badge variant="neutral" className="rounded-full px-2 py-[6px] text-[12px]">
-                {s.status ?? "در انتظار"}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button size="sm" className="rounded-full" onClick={() => setSelected(s)}>
-                مشاهده
-              </Button>
-              <Button size="sm" variant="ghost" className="rounded-full">
-                دانلود
-              </Button>
-            </div>
-          </Card>
-        ))}
-      </div>
 
-      <Dialog open={Boolean(selected)} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>جزئیات تسویه {selected?.period}</DialogTitle>
-          </DialogHeader>
+      <Tabs value={tab} onValueChange={setTab}>
+        <TabsList className="grid w-full grid-cols-3 gap-2">
+          <TabsTrigger value="settlements">تسویه‌ها</TabsTrigger>
+          <TabsTrigger value="transactions">تراکنش‌ها</TabsTrigger>
+          <TabsTrigger value="refunds">استرداد/اختلاف</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="settlements" className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-2">
+            {filteredSettlements.map((s) => (
+              <Card key={s.id} className="space-y-3 rounded-2xl border border-divider bg-surface-1/90 p-4 shadow-soft">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted">دوره</p>
+                    <p className="text-base font-semibold text-primary-900">{s.period}</p>
+                  </div>
+                  <Badge variant="outline" className="rounded-full px-2 py-[6px] text-[12px]">
+                    {s.id}
+                  </Badge>
+                </div>
+                <div className="grid gap-2 rounded-xl border border-divider bg-surface-2/80 p-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted">ناخالص</span>
+                    <span className="font-semibold text-primary-900">{formatToman(s.gross)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted">کارمزد</span>
+                    <span className="font-semibold text-primary-900">{formatToman(s.fees)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted">بازپرداخت</span>
+                    <span className="font-semibold text-primary-900">{formatToman(s.refunds ?? 0)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted">اختلاف</span>
+                    <span className="font-semibold text-primary-900">{formatToman(s.disputes ?? 0)}</span>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-divider pt-2">
+                    <span className="text-muted">خالص</span>
+                    <span className="text-lg font-bold text-primary-900">{formatToman(s.net)}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Badge variant="neutral" className="rounded-full px-2 py-[6px] text-[12px]">
+                    {s.status ?? "در انتظار"}
+                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" className="rounded-full" onClick={() => setSelected(s)}>
+                      مشاهده
+                    </Button>
+                    <Button size="sm" variant="ghost" className="rounded-full">
+                      دانلود
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="transactions" className="space-y-2">
+          {filteredTransactions.length === 0 && <EmptyState title="تراکنشی موجود نیست" />}
+          {filteredTransactions.map((t) => (
+            <Card key={t.id} className="flex items-center justify-between rounded-2xl border border-divider bg-surface-1/90 p-3 shadow-soft">
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-primary-900">تراکنش {t.id}</p>
+                <p className="text-[12px] text-muted">{new Date(t.at).toLocaleString("fa-IR")}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={t.type === "REFUND" ? "warning" : "success"} className="rounded-full px-2 py-[6px] text-[12px]">
+                  {t.type === "REFUND" ? "استرداد" : "پرداخت"}
+                </Badge>
+                <Badge variant="outline" className="rounded-full px-2 py-[6px] text-[12px]">
+                  {t.method === "online" ? "آنلاین" : "حضوری"}
+                </Badge>
+                <p className="text-base font-bold text-primary-900">{formatToman(t.amount)}</p>
+              </div>
+            </Card>
+          ))}
+        </TabsContent>
+
+        <TabsContent value="refunds" className="space-y-2">
+          {filteredRefunds.length === 0 && <EmptyState title="استردادی ثبت نشده" />}
+          {filteredRefunds.map((r) => (
+            <Card key={r.id} className="rounded-2xl border border-divider bg-surface-1/90 p-3 shadow-soft">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted">سفارش {r.orderId}</p>
+                  <p className="text-base font-semibold text-primary-900">{formatToman(r.amount)}</p>
+                </div>
+                <Badge variant="warning" className="rounded-full px-2 py-[6px] text-[12px]">
+                  {r.status}
+                </Badge>
+              </div>
+              <p className="text-[12px] text-muted">{r.reason ?? "جزئیات اضافه"}</p>
+            </Card>
+          ))}
+        </TabsContent>
+      </Tabs>
+
+      <Sheet open={Boolean(selected)} onOpenChange={(open) => !open && setSelected(null)}>
+        <SheetContent side="right" className="max-w-xl">
+          <SheetHeader>
+            <SheetTitle>جزئیات تسویه {selected?.period}</SheetTitle>
+          </SheetHeader>
           {!selected && <p className="text-sm text-muted">در حال بارگذاری...</p>}
           {selected && (
-            <div className="space-y-3">
+            <div className="space-y-3 pt-4">
               <div className="grid grid-cols-2 gap-2 rounded-xl border border-divider bg-surface-2 p-3 text-sm">
                 <span className="text-muted">ناخالص</span>
                 <span className="text-primary-900">{formatToman(selected.gross)}</span>
@@ -210,8 +317,8 @@ export default function PortalFinancePage() {
               </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

@@ -9,6 +9,10 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { InfoChip } from "@/components/ui/InfoChip";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { portalApi } from "@/lib/portal/api";
 import { formatDate, formatTime } from "@/lib/format";
@@ -31,6 +35,9 @@ export default function PortalSupportPage() {
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Ticket | null>(null);
   const [reply, setReply] = useState("");
+  const [statusTab, setStatusTab] = useState("open");
+  const [q, setQ] = useState("");
+  const [internalNote, setInternalNote] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -50,6 +57,18 @@ export default function PortalSupportPage() {
     fetchTickets();
   }, []);
 
+  const filtered = tickets.filter((t) => {
+    const statusText = (t.status ?? "").toLowerCase();
+    const matchesTab =
+      statusTab === "open"
+        ? statusText.includes("open")
+        : statusTab === "waiting"
+          ? statusText.includes("waiting") || statusText.includes("pending")
+          : statusText.includes("closed") || statusText.includes("resolved");
+    const matchesQ = q ? `${t.subject} ${t.id}`.toLowerCase().includes(q.toLowerCase()) : true;
+    return matchesTab && matchesQ;
+  });
+
   return (
     <div className="space-y-4 pb-16">
       <Card className="rounded-2xl border border-divider bg-surface-1/95 p-4 shadow-soft">
@@ -64,14 +83,31 @@ export default function PortalSupportPage() {
         </div>
       </Card>
 
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-divider bg-surface-1/95 p-3">
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="جستجو بر اساس موضوع یا شناسه"
+          className="h-9 w-full flex-1 rounded-xl border-divider bg-surface-2/80 text-sm"
+        />
+      </div>
+
+      <Tabs value={statusTab} onValueChange={setStatusTab}>
+        <TabsList className="grid w-full grid-cols-3 gap-2">
+          <TabsTrigger value="open">باز</TabsTrigger>
+          <TabsTrigger value="waiting">منتظر پاسخ شما</TabsTrigger>
+          <TabsTrigger value="closed">بسته</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       {error && <ErrorState title="خطا در بارگذاری تیکت‌ها" description="لطفا دوباره تلاش کنید." details={error} onRetry={() => window.location.reload()} />}
       {loading && <SupportSkeleton />}
-      {!loading && !error && tickets.length === 0 && <EmptyState title="تیکتی ثبت نشده" />}
+      {!loading && !error && filtered.length === 0 && <EmptyState title="تیکتی ثبت نشده" />}
 
-      {!loading && !error && tickets.length > 0 && (
+      {!loading && !error && filtered.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-[1.05fr,1.4fr]">
           <Card className="space-y-2 rounded-2xl border border-divider bg-surface-1/90 p-4 shadow-soft">
-            {tickets.map((t) => {
+            {filtered.map((t) => {
               const sla = t.slaMinutes ?? 30;
               const remainingMs = Math.max(0, (t.lastMessageAt ?? Date.now()) + sla * 60000 - Date.now());
               const remainingMin = Math.ceil(remainingMs / 60000);
@@ -94,6 +130,11 @@ export default function PortalSupportPage() {
                     <InfoChip>
                       SLA: {remainingMs === 0 ? "تمام" : `${remainingMin} دقیقه`}
                     </InfoChip>
+                  </div>
+                  <div className="mt-2 flex items-center justify-end">
+                    <Button size="sm" variant="ghost" className="rounded-full">
+                      مشاهده
+                    </Button>
                   </div>
                 </button>
               );
@@ -127,6 +168,22 @@ export default function PortalSupportPage() {
                     </div>
                   ))}
                 </div>
+
+                <Collapsible open={internalNote} onOpenChange={setInternalNote}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-primary-900">یادداشت داخلی</p>
+                    <div className="flex items-center gap-2 text-sm text-muted">
+                      <Checkbox checked={internalNote} onCheckedChange={(val) => setInternalNote(Boolean(val))} />
+                      داخلی
+                      <CollapsibleTrigger className="rounded-full bg-transparent px-3 py-1 text-sm text-primary-900 hover:underline">
+                        {internalNote ? "پنهان" : "نمایش"}
+                      </CollapsibleTrigger>
+                    </div>
+                  </div>
+                  <CollapsibleContent>
+                    <Textarea className="mt-2" placeholder="یادداشت داخلی" />
+                  </CollapsibleContent>
+                </Collapsible>
 
                 <div className="space-y-2">
                   <p className="text-sm font-semibold text-primary-900">ماکرو سریع</p>
