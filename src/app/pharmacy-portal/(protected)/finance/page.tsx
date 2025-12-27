@@ -9,6 +9,8 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Filter } from "lucide-react";
 import { portalApi } from "@/lib/portal/api";
 import { formatToman } from "@/lib/money";
 
@@ -19,6 +21,8 @@ export default function PortalFinancePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Settlement | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [periodFilter, setPeriodFilter] = useState("all");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,6 +58,12 @@ export default function PortalFinancePage() {
     return base.map((s) => s.net ?? 0);
   }, [settlements]);
 
+  const filteredSettlements = useMemo(() => {
+    if (periodFilter === "all") return settlements;
+    if (periodFilter === "recent") return settlements.slice(0, 6);
+    return settlements.filter((s) => (s.status ?? "").toLowerCase().includes(periodFilter.toLowerCase()));
+  }, [periodFilter, settlements]);
+
   return (
     <div className="space-y-4 pb-16">
       <Card className="rounded-2xl border border-divider bg-surface-1/95 p-4 shadow-soft">
@@ -61,10 +71,43 @@ export default function PortalFinancePage() {
           <div>
             <p className="text-sm text-muted">تسویه و مالی</p>
             <h1 className="text-2xl font-bold text-primary-900">وضعیت مالی</h1>
+            <p className="text-[12px] text-muted">نگاه سریع به مبالغ؛ جزئیات در لایه بعدی.</p>
           </div>
-          <Button asChild size="sm" variant="secondary" className="rounded-full">
-            <a href="/api/portal/settlements?download=1">دانلود گزارش</a>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+              <PopoverTrigger asChild>
+                <Button size="sm" variant="secondary" className="rounded-full">
+                  <Filter className="me-1 h-4 w-4" /> فیلترها
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-60">
+                <div className="space-y-2 text-sm">
+                  <label className="flex items-center gap-2">
+                    <input type="radio" name="period" value="all" checked={periodFilter === "all"} onChange={() => setPeriodFilter("all")} />
+                    همه دوره‌ها
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input type="radio" name="period" value="recent" checked={periodFilter === "recent"} onChange={() => setPeriodFilter("recent")} />
+                    ۶ دوره اخیر
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input type="radio" name="period" value="paid" checked={periodFilter === "paid"} onChange={() => setPeriodFilter("paid")} />
+                    فقط پرداخت‌شده
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input type="radio" name="period" value="pending" checked={periodFilter === "pending"} onChange={() => setPeriodFilter("pending")} />
+                    در انتظار
+                  </label>
+                  <Button variant="ghost" className="w-full rounded-full" onClick={() => setPeriodFilter("all")}>
+                    پاک‌سازی
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Button asChild size="sm" variant="secondary" className="rounded-full">
+              <a href="/api/portal/settlements?download=1">دانلود گزارش</a>
+            </Button>
+          </div>
         </div>
       </Card>
 
@@ -95,7 +138,7 @@ export default function PortalFinancePage() {
       {loading && <FinanceSkeleton />}
       {!loading && !error && settlements.length === 0 && <EmptyState title="تسویه‌ای ثبت نشده" />}
       <div className="grid gap-3 md:grid-cols-2">
-        {settlements.map((s) => (
+        {filteredSettlements.map((s) => (
           <Card key={s.id} className="space-y-3 rounded-2xl border border-divider bg-surface-1/90 p-4 shadow-soft">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-primary-900">دوره {s.period}</p>
