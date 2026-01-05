@@ -2,6 +2,10 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "@/lib/admin-session";
 
+const APP_ACCESS_COOKIE_NAME = "app_access";
+const APP_ACCESS_PATH = "/coming-soon/access";
+const PUBLIC_FILE_REGEX = /\.(?:png|jpg|jpeg|svg|webp|gif|ico|css|js|map|txt|xml|json|woff2?|ttf|otf)$/i;
+
 const roleRules: { test: (path: string) => boolean; roles: string[] }[] = [
   { test: (p) => p.startsWith("/ops/orders"), roles: ["superAdmin", "ops", "support", "finance"] },
   { test: (p) => p.startsWith("/ops/tickets"), roles: ["superAdmin", "support", "ops"] },
@@ -15,6 +19,10 @@ const ADMIN_LOGIN_PATH = "/coming-soon/admin/login";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  if (pathname.startsWith("/_next") || pathname.startsWith("/api") || PUBLIC_FILE_REGEX.test(pathname)) {
+    return NextResponse.next();
+  }
 
   if (pathname.startsWith("/coming-soon/admin")) {
     if (!hasAdminEnv()) {
@@ -36,6 +44,10 @@ export async function middleware(req: NextRequest) {
       loginUrl.searchParams.set("next", pathname);
       return NextResponse.redirect(loginUrl);
     }
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith("/coming-soon")) {
     return NextResponse.next();
   }
 
@@ -64,38 +76,51 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!pathname.startsWith("/ops")) return NextResponse.next();
-  if (pathname.startsWith("/ops/login")) return NextResponse.next();
+  if (pathname.startsWith("/ops")) {
+    if (pathname.startsWith("/ops/login")) return NextResponse.next();
 
-  // Demo bypass: allow access with ops key or explicit flag
-  const demoBypass = process.env.OPS_DEMO_BYPASS === "true";
-  const providedKey =
-    req.nextUrl.searchParams.get("key") ??
-    req.headers.get("x-ops-key") ??
-    req.headers.get("authorization")?.replace("Admin ", "");
-  const opsKey = process.env.OPS_ADMIN_KEY;
-  if (demoBypass || (opsKey && providedKey === opsKey)) {
+    // Demo bypass: allow access with ops key or explicit flag
+    const demoBypass = process.env.OPS_DEMO_BYPASS === "true";
+    const providedKey =
+      req.nextUrl.searchParams.get("key") ??
+      req.headers.get("x-ops-key") ??
+      req.headers.get("authorization")?.replace("Admin ", "");
+    const opsKey = process.env.OPS_ADMIN_KEY;
+    if (demoBypass || (opsKey && providedKey === opsKey)) {
+      return NextResponse.next();
+    }
+
+    const token = req.cookies.get("admin_session")?.value ?? req.headers.get("authorization")?.replace("Admin ", "") ?? "";
+    const session = decodeAdminSession(token);
+    if (!session) {
+      const loginUrl = new URL("/ops/login", req.url);
+      loginUrl.searchParams.set("next", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    const rule = roleRules.find((r) => r.test(pathname));
+    if (rule && !rule.roles.includes(session.role)) {
+      return NextResponse.redirect(new URL("/ops/login", req.url));
+    }
+
     return NextResponse.next();
   }
 
-  const token = req.cookies.get("admin_session")?.value ?? req.headers.get("authorization")?.replace("Admin ", "") ?? "";
-  const session = decodeAdminSession(token);
-  if (!session) {
-    const loginUrl = new URL("/ops/login", req.url);
-    loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  const rule = roleRules.find((r) => r.test(pathname));
-  if (rule && !rule.roles.includes(session.role)) {
-    return NextResponse.redirect(new URL("/ops/login", req.url));
+  const accessCode = process.env.APP_ACCESS_CODE ?? "";
+  if (accessCode) {
+    const accessCookie = req.cookies.get(APP_ACCESS_COOKIE_NAME)?.value ?? "";
+    if (accessCookie !== accessCode) {
+      const accessUrl = new URL(APP_ACCESS_PATH, req.url);
+      accessUrl.searchParams.set("next", pathname);
+      return NextResponse.redirect(accessUrl);
+    }
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/coming-soon/admin/:path*", "/ops/:path*", "/pharmacy/:path*", "/pharmacy-portal/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
 
 function decodeAdminSession(token: string | null | undefined): { role: string } | null {
