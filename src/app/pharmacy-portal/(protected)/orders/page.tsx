@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +50,7 @@ const timeWindowOptions = [
   { value: "1440", label: "امروز" },
 ];
 
-export default function PortalOrdersPage() {
+function PortalOrdersContent() {
   const session = usePortalSession();
   const searchParams = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -277,6 +277,14 @@ export default function PortalOrdersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function PortalOrdersPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[60vh]" />}>
+      <PortalOrdersContent />
+    </Suspense>
   );
 }
 
