@@ -1,3 +1,5 @@
+import type { DeliveryOption, Invoice, PaymentMethod as CheckoutPaymentMethod, PaymentStatus } from "./payments/types";
+
 export type AddressLabel = "خانه" | "کار" | "سایر";
 
 export type Address = {
@@ -48,10 +50,13 @@ export type OrderStatus =
   | "created"
   | "rx_received"
   | "rx_review"
+  | "needs_fix"
+  | "approved"
   | "preparing"
   | "shipped"
   | "delivered"
   | "cancelled"
+  | "refund_requested"
   | "refunding"
   | "refunded";
 
@@ -70,15 +75,67 @@ export type Order = {
   pharmacyId?: string;
   status: OrderStatus;
   items: OrderItem[];
+  subtotal?: number;
+  deliveryFee?: number;
   total: number;
   discount: number;
   payable: number;
   addressId: string;
   deliverySlotId?: string;
   paymentType: PaymentMethodType;
+  paymentMethodCode?: CheckoutPaymentMethod;
+  paymentStatus?: PaymentStatus;
+  paymentIntentId?: string;
+  paymentRefId?: string;
   substitution: CheckoutPrefs["substitution"];
+  deliveryOption?: DeliveryOption;
+  invoice?: Invoice;
+  serviceFee?: number;
+  couponCode?: string;
+  noteToCourier?: string;
   notes?: string;
   timeline: { status: OrderStatus; at: number }[];
+};
+
+export type DeliveryStatusV2 =
+  | "unassigned"
+  | "offered"
+  | "accepted"
+  | "picked_up"
+  | "enroute"
+  | "arrived"
+  | "delivered"
+  | "failed"
+  | "cancelled";
+
+export type DeliveryEvent = {
+  type: "assigned" | "accepted" | "picked_up" | "location" | "arrived" | "delivered" | "failed" | "note";
+  at: number;
+  meta?: Record<string, unknown>;
+};
+
+export type DeliveryLocationPing = {
+  courierId: string;
+  lat: number;
+  lng: number;
+  speed?: number | null;
+  heading?: number | null;
+  accuracy?: number | null;
+  at: number;
+};
+
+export type DeliverySummary = {
+  id: string;
+  orderId: string;
+  courierId?: string | null;
+  status: DeliveryStatusV2;
+  pickupPharmacyId: string;
+  dropoffAddressId: string;
+  etaMin?: number | null;
+  etaMax?: number | null;
+  distanceKm?: number | null;
+  events: DeliveryEvent[];
+  lastPing?: DeliveryLocationPing;
 };
 
 export type TicketStatus = "open" | "answered" | "closed";
@@ -90,7 +147,7 @@ export type Ticket = {
   subject: string;
   message: string;
   orderId?: string;
-  replies: { at: number; from: "user" | "support"; text: string }[];
+  replies: { at: number; from: "user" | "support" | "pharmacy"; text: string }[];
 };
 
 export type PatientProfile = {
