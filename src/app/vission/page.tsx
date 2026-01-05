@@ -1,2 +1,5 @@
-export { metadata } from "../vision/page";
-export { default } from "../vision/page";
+import { redirect } from "next/navigation";
+
+export default function VissionRedirect() {
+  redirect("/coming-soon/vision");
+}

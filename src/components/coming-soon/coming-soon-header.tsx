@@ -24,7 +24,7 @@ const defaultNavItems: NavItem[] = [
   { href: "/coming-soon/pharmacies", label: "برای داروخانه‌ها" },
   { href: "/coming-soon/clinics", label: "برای کلینیک‌ها" },
   { href: "/coming-soon/hospitals", label: "برای بیمارستان‌ها" },
-  { href: "/vision", label: "چشم‌انداز" },
+  { href: "/coming-soon/vision", label: "چشم‌انداز" },
 ];
 
 export function ComingSoonHeader({

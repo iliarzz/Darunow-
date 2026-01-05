@@ -1,7 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { Check, ChevronDown, ChevronUp, Download, LogOut, Plus, RefreshCw, Search, Shield, Trash2, X } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  LogOut,
+  Plus,
+  RefreshCw,
+  Search,
+  Shield,
+  Trash2,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   type PartnerRegistration,
@@ -14,9 +26,6 @@ import {
   removeRegistrations,
   updateRegistration,
 } from "@/lib/partner-registrations";
-
-const MOCK_CREDENTIALS = { username: "admin", password: "admin" };
-const AUTH_KEY = "darunow_admin_mock";
 
 const typeLabels: Record<PartnerRegistrationType, string> = {
   waitlist: "لیست انتظار",
@@ -193,10 +202,6 @@ const exportCsv = (items: PartnerRegistration[]) => {
 };
 
 export default function ComingSoonAdminPage() {
-  const [authed, setAuthed] = useState(false);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [items, setItems] = useState<PartnerRegistration[]>([]);
   const [typeFilter, setTypeFilter] = useState<PartnerRegistrationType | "all">("all");
   const [statusFilter, setStatusFilter] = useState<PartnerRegistrationStatus | "all">("all");
@@ -212,16 +217,8 @@ export default function ComingSoonAdminPage() {
   const [newErrors, setNewErrors] = useState<Partial<Record<keyof NewEntry, string>>>({});
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (sessionStorage.getItem(AUTH_KEY) === "1") {
-      setAuthed(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!authed) return;
     setItems(getRegistrations());
-  }, [authed]);
+  }, []);
 
   const stats = useMemo(() => {
     const pending = items.filter((item) => item.status === "pending").length;
@@ -266,30 +263,16 @@ export default function ComingSoonAdminPage() {
   const allFilteredIds = useMemo(() => filtered.map((item) => item.id), [filtered]);
   const allSelected = allFilteredIds.length > 0 && allFilteredIds.every((id) => selected.includes(id));
 
-  const handleLogin = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError("");
-    if (!username.trim() || !password.trim()) {
-      setError("نام کاربری و رمز عبور را وارد کنید.");
-      return;
-    }
-    if (username.trim() !== MOCK_CREDENTIALS.username || password !== MOCK_CREDENTIALS.password) {
-      setError("اطلاعات ورود درست نیست.");
-      return;
-    }
-    sessionStorage.setItem(AUTH_KEY, "1");
-    setAuthed(true);
-  };
-
-  const handleLogout = () => {
-    sessionStorage.removeItem(AUTH_KEY);
-    setAuthed(false);
-    setUsername("");
-    setPassword("");
-  };
-
   const refreshItems = () => {
     setItems(getRegistrations());
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/admin/logout", { method: "POST" });
+    } finally {
+      window.location.href = "/coming-soon/admin/login";
+    }
   };
 
   const toggleSelected = (id: string) => {
@@ -377,70 +360,35 @@ export default function ComingSoonAdminPage() {
 
   return (
     <section className="mx-auto flex min-h-[84vh] max-w-6xl flex-col px-6 pb-16 pt-10" data-allow-copy="true">
-      {!authed ? (
-        <div className="mx-auto mt-12 w-full max-w-md rounded-[32px] border border-white/12 bg-white/5 p-6 text-right backdrop-blur-xl">
-          <div className="flex items-center gap-3 text-sm text-white/70">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-              <Shield className="h-5 w-5 text-white/70" />
-            </span>
-            ورود مدیر
-          </div>
-          <h1 className="mt-4 text-xl font-semibold">پنل مدیریت همکاران</h1>
-          <p className="mt-2 text-sm leading-6 text-white/60">
-            ورود فعلاً به‌صورت آزمایشی است. اطلاعات واقعی را بعداً جایگزین می‌کنیم.
-          </p>
-
-          <form className="mt-6 space-y-3" onSubmit={handleLogin}>
-            <input
-              type="text"
-              placeholder="نام کاربری"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              className="h-12 w-full rounded-2xl border border-white/12 bg-black/30 px-4 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-white/25 focus:bg-black/35"
-            />
-            <input
-              type="password"
-              placeholder="رمز عبور"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="h-12 w-full rounded-2xl border border-white/12 bg-black/30 px-4 text-sm text-white placeholder:text-white/40 outline-none transition focus:border-white/25 focus:bg-black/35"
-            />
-            {error ? <div className="text-xs text-rose-200/80">{error}</div> : null}
-            <button
-              type="submit"
-              className="h-12 w-full rounded-2xl bg-white px-5 text-sm font-semibold text-[#050913] transition hover:translate-y-[-1px]"
-            >
-              ورود
-            </button>
-          </form>
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div className="text-xs text-white/50">دارونَو · پنل مدیریت</div>
+          <h1 className="mt-2 text-2xl font-semibold">درخواست‌های همکاری و لیست انتظار</h1>
+          <p className="mt-2 text-sm text-white/55">نمایش، پیگیری و مدیریت درخواست‌های ثبت‌شده.</p>
         </div>
-      ) : (
-        <>
-          <header className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <div className="text-xs text-white/50">دارونَو · پنل مدیریت</div>
-              <h1 className="mt-2 text-2xl font-semibold">درخواست‌های همکاری و لیست انتظار</h1>
-              <p className="mt-2 text-sm text-white/55">نمایش، پیگیری و مدیریت درخواست‌های ثبت‌شده.</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={refreshItems}
-                className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-xs text-white/80 transition hover:border-white/30 hover:bg-white/10"
-              >
-                بروزرسانی
-                <RefreshCw className="h-4 w-4 text-white/60" />
-              </button>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-xs text-white/80 transition hover:border-white/30 hover:bg-white/10"
-              >
-                خروج
-                <LogOut className="h-4 w-4 text-white/60" />
-              </button>
-            </div>
-          </header>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-xs text-white/70">
+            <Shield className="h-4 w-4 text-white/60" />
+            دسترسی محافظت‌شده
+          </span>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-xs text-white/80 transition hover:border-white/30 hover:bg-white/10"
+          >
+            خروج
+            <LogOut className="h-4 w-4 text-white/60" />
+          </button>
+          <button
+            type="button"
+            onClick={refreshItems}
+            className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-xs text-white/80 transition hover:border-white/30 hover:bg-white/10"
+          >
+            بروزرسانی
+            <RefreshCw className="h-4 w-4 text-white/60" />
+          </button>
+        </div>
+      </header>
 
           <div className="mt-8 grid gap-4 md:grid-cols-4">
             <StatCard label="کل درخواست‌ها" value={`${stats.total}`} />
@@ -846,8 +794,6 @@ export default function ComingSoonAdminPage() {
               })
             )}
           </div>
-        </>
-      )}
     </section>
   );
 }
