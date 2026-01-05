@@ -7,6 +7,12 @@
 :root {
   --font-sans: "Vazirmatn", system-ui, -apple-system, sans-serif;
   --font-display: var(--font-sans);
+  --fs-h1: 22px;
+  --fs-h2: 18px;
+  --fs-body: 14px;
+  --fs-caption: 12px;
+  --lh-tight: 1.25;
+  --lh-body: 1.6;
 }
 
 *,
@@ -26,8 +32,10 @@ body {
   background: var(--surface-2);
   color: var(--primary-900);
   min-height: 100vh;
-  line-height: 1.6;
+  line-height: var(--lh-body);
   -webkit-font-smoothing: antialiased;
+  direction: rtl;
+  text-align: start;
 }
 
 ::selection {
@@ -37,14 +45,14 @@ body {
 
 @layer base {
   h1 {
-    font-size: 22px;
+    font-size: var(--fs-h1);
     font-weight: 700;
-    line-height: 1.25;
+    line-height: var(--lh-tight);
   }
   h2 {
-    font-size: 18px;
+    font-size: var(--fs-h2);
     font-weight: 700;
-    line-height: 1.25;
+    line-height: var(--lh-tight);
   }
   h3 {
     font-size: 16px;
@@ -54,11 +62,12 @@ body {
   p,
   span,
   label {
-    font-size: 14px;
+    font-size: var(--fs-body);
     font-weight: 400;
+    line-height: var(--lh-body);
   }
   small {
-    font-size: 12px;
+    font-size: var(--fs-caption);
   }
   a,
   button,
@@ -84,5 +93,144 @@ body {
   }
   .surface-3 {
     background: var(--surface-3);
+  }
+  .type-h1 {
+    font-size: var(--fs-h1);
+    font-weight: 700;
+    line-height: var(--lh-tight);
+  }
+  .type-h2 {
+    font-size: var(--fs-h2);
+    font-weight: 700;
+    line-height: var(--lh-tight);
+  }
+  .type-body {
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+  }
+  .type-caption {
+    font-size: var(--fs-caption);
+    color: var(--muted);
+  }
+  .hero-tint {
+    background-image: var(--hero-tint);
+  }
+  .numeric {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+  .rtl-text {
+    unicode-bidi: plaintext;
+  }
+  .ltr {
+    direction: ltr;
+    text-align: left;
+    unicode-bidi: plaintext;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .animate-floatSlow {
+    animation: floatSlow 10s ease-in-out infinite;
+  }
+  .animate-floatSlower {
+    animation: floatSlower 14s ease-in-out infinite;
+  }
+  .noise {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+  }
+  .light-sweep {
+    background: linear-gradient(
+      120deg,
+      transparent 18%,
+      rgba(255, 255, 255, 0.18) 45%,
+      rgba(255, 255, 255, 0.06) 60%,
+      transparent 74%
+    );
+    animation: lightSweep 9s ease-in-out infinite;
+    transform: translateX(-120%);
+    will-change: transform, opacity;
+    mask-image: linear-gradient(90deg, transparent 0%, #000 20%, #000 80%, transparent 100%);
+    mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 20%, #000 80%, transparent 100%);
+    -webkit-mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+  }
+  .email-ltr {
+    direction: ltr;
+    text-align: left;
+    unicode-bidi: plaintext;
+  }
+  .email-ltr::placeholder {
+    direction: rtl;
+    text-align: right;
+  }
+  .no-copy {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .no-copy input,
+  .no-copy textarea,
+  .no-copy [data-allow-copy="true"] {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-floatSlow,
+  .animate-floatSlower,
+  .light-sweep {
+    animation: none !important;
+  }
+}
+
+@keyframes floatSlow {
+  0% {
+    transform: translate(-50%, 0) scale(1);
+  }
+  50% {
+    transform: translate(-50%, 14px) scale(1.02);
+  }
+  100% {
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes floatSlower {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(18px, -10px) scale(1.03);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes lightSweep {
+  0% {
+    transform: translateX(-160%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.45;
+  }
+  60% {
+    transform: translateX(160%);
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateX(160%);
+    opacity: 0;
   }
 }

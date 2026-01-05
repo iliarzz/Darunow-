@@ -1,25 +1,61 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { MapPin, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import Image from "next/image";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { SpeedLineAccent } from "@/components/brand/SpeedLineAccent";
 import { cn } from "@/lib/utils";
 import { pageFade } from "@/lib/motion";
-import { getCityName, getProvinceName } from "@/lib/location/iran";
-import { AddressPickerSheet } from "@/components/features/AddressPickerSheet";
-import { setDefaultAddress, useAddresses } from "@/stores/address";
+import { TopLocationBar } from "@/components/location/TopLocationBar";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const bare =
+    pathname?.startsWith("/ops") ||
+    pathname?.startsWith("/coming-soon") ||
+    pathname?.startsWith("/vision") ||
+    pathname?.startsWith("/vission") ||
+    pathname?.startsWith("/pharmacy") ||
+    pathname?.startsWith("/pharmacy-panel") ||
+    pathname?.startsWith("/pharmacy-portal") ||
+    pathname?.startsWith("/doctor-portal");
+  const showLocationBar = useMemo(
+    () =>
+      Boolean(
+        pathname &&
+          [
+            "/",
+            "/cart",
+            "/orders",
+            "/profile",
+            "/prescriptions",
+            "/prescriptions/new",
+            "/search",
+            "/categories",
+            "/pharmacies",
+            "/doctors",
+            "/checkout",
+          ].some((p) => pathname === p || pathname.startsWith(`${p}/`)),
+      ),
+    [pathname],
+  );
+  if (bare) {
+    return <div className="min-h-screen bg-surface-2 text-primary-900">{children}</div>;
+  }
   return (
     <div className="relative min-h-screen bg-surface-2 text-primary-900">
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col px-4 pb-24 pt-4">
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col px-4 pb-32 pt-4">
         <TopBar />
+        {showLocationBar && (
+          <div className="mb-4">
+            <TopLocationBar />
+          </div>
+        )}
         <AnimatePresence mode="wait" initial={false}>
           <motion.main key={pathname} className="flex-1 w-full" {...pageFade}>
             {children}
@@ -32,46 +68,49 @@ export function AppShell({ children }: { children: ReactNode }) {
 }
 
 function TopBar() {
-  const addresses = useAddresses();
-  const current = addresses.find((a) => a.isDefault) ?? addresses[0];
-  const locationText = current
-    ? `${current.label} · ${getCityName(current.city)}`
-    : "آدرس را انتخاب کن";
-  const areaText = current ? `${getProvinceName(current.province)}` : "موقعیت را مشخص کن";
+  const [compact, setCompact] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setCompact(window.scrollY > 8);
+    handler();
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
 
   return (
-    <header className="mb-5 rounded-[18px] border border-border bg-surface-1 px-4 py-3 shadow-xs">
-      <div className="flex items-center justify-between gap-3">
+    <header
+      className={cn(
+        "sticky top-0 z-50 mb-5 border border-divider/80 bg-surface-1/90 px-4 py-3 backdrop-blur-md transition-all duration-200",
+        "rounded-[18px]",
+        compact ? "shadow-elev-1" : "shadow-none",
+      )}
+    >
+      <div
+        className={cn(
+          "flex items-center justify-between gap-3 transition-all duration-200",
+          compact ? "h-12" : "h-14",
+        )}
+      >
         <div className="flex flex-1 items-center gap-3 overflow-hidden">
-          <div className="grid h-10 w-10 place-items-center rounded-full bg-accent-200/60 text-primary-800">
-            <MapPin className="h-4 w-4" />
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/brand/Darunow_1_logo.png"
+              alt="Darunow"
+              width={64}
+              height={64}
+              className="h-14 w-14 rounded-xl object-contain [clip-path:inset(4%)]"
+              priority
+            />
+          </Link>
+          <div className="hidden min-[380px]:flex flex-1 items-center gap-2 rounded-[14px] border border-divider bg-surface-2 px-2 py-1 text-start text-xs text-muted">
+            <SpeedLineAccent className="h-5 w-10 opacity-70" />
+            <p className="truncate text-[13px] font-semibold text-primary-900">دارونَو · ارسال سریع و مطمئن</p>
           </div>
-          <div className="min-w-0">
-            <p className="text-[13px] text-muted">{areaText}</p>
-            <p className="truncate text-[15px] font-semibold">{locationText}</p>
-          </div>
-          <SpeedLineAccent className="ml-auto h-5 w-10" />
         </div>
         <div className="flex items-center gap-2">
-          <AddressPickerSheet
-            selectedId={current?.id}
-            onSelect={(id) => {
-              setDefaultAddress(id);
-            }}
-          >
-            <Button size="sm" variant="secondary">
-              تغییر
-            </Button>
-          </AddressPickerSheet>
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            className="min-w-[44px] px-3"
-            title="جستجو"
-          >
-            <Link href={{ pathname: "/pharmacies", query: { focus: "search" } }}>
-              <Search className="h-4 w-4" />
+          <Button variant="ghost" size="sm" asChild className="min-w-[44px] rounded-full px-3" title="جستجو">
+            <Link href="/search">
+              <Search className="h-5 w-5" />
             </Link>
           </Button>
         </div>

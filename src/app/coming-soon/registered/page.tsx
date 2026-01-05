@@ -1,0 +1,51 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { ScrollReveal } from "@/components/motion/scroll-reveal";
+import { SuccessMark } from "./success-mark";
+
+export const metadata: Metadata = {
+  title: "دارونَو — ثبت در لیست انتظار",
+  description: "ثبت شما با موفقیت انجام شد. به زودی دعوت بتا برای شما ارسال می‌شود.",
+};
+
+export default function WaitlistSuccessPage() {
+  return (
+    <section className="mx-auto flex min-h-[80vh] max-w-4xl items-center px-6 pb-24 pt-10">
+      <ScrollReveal>
+        <div className="relative overflow-hidden rounded-[32px] border border-white/12 bg-white/5 p-8 text-center backdrop-blur-xl md:p-12">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute -top-24 right-1/3 h-44 w-44 rounded-full bg-[#7EB3CC]/18 blur-3xl" />
+            <div className="absolute -bottom-28 left-1/4 h-44 w-60 rounded-full bg-white/10 blur-3xl" />
+            <div className="light-sweep absolute -inset-y-1/2 left-0 w-[160%] opacity-35" />
+          </div>
+
+          <div className="relative space-y-4">
+            <SuccessMark />
+            <div className="text-xs text-white/55">ثبت موفق</div>
+            <h1 className="text-balance text-2xl font-semibold md:text-3xl">
+              شما با موفقیت به لیست انتظار دارونَو پیوستید.
+            </h1>
+            <p className="text-sm leading-7 text-white/65 md:text-base">
+              به محض آماده شدن نسخۀ بتا، از طریق ایمیل مطلع خواهید شد. از همراهی شما سپاسگزاریم.
+            </p>
+
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <Link
+                href="/coming-soon"
+                className="inline-flex items-center justify-center rounded-2xl border border-white/12 bg-white/5 px-5 py-2 text-sm font-semibold text-white/90 transition hover:bg-white/10"
+              >
+                بازگشت به صفحه قبلی
+              </Link>
+              <Link
+                href="/"
+                className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-2 text-sm font-semibold text-[#050913] shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition hover:translate-y-[-1px]"
+              >
+                ورود به وب‌اپ
+              </Link>
+            </div>
+          </div>
+        </div>
+      </ScrollReveal>
+    </section>
+  );
+}
