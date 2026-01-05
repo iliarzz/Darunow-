@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { LockKeyhole, ShieldCheck } from "lucide-react";
 
-export default function AdminLoginPage() {
+function AdminLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reduceMotion = useReducedMotion();
@@ -103,5 +103,13 @@ export default function AdminLoginPage() {
         </div>
       </motion.div>
     </section>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto min-h-[60vh] w-full max-w-3xl px-6 pb-24 pt-10" />}>
+      <AdminLoginForm />
+    </Suspense>
   );
 }

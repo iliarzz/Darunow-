@@ -122,6 +122,24 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
 export function useLocation() {
   const ctx = useContext(LocationContext);
   if (!ctx) {
+    if (typeof window === "undefined") {
+      const noopStart: LocationContextValue["startAddressWizard"] = () => {};
+      const noopSetGeo: LocationContextValue["setDraftGeo"] = () => {};
+      const noopUpdate: LocationContextValue["updateDraft"] = () => {};
+      const noopSave: LocationContextValue["saveDraftAsActiveAddress"] = () => null;
+      const noopClear: LocationContextValue["clearAddress"] = () => {};
+
+      return {
+        activeAddress: null,
+        draft: null,
+        draftReady: false,
+        startAddressWizard: noopStart,
+        setDraftGeo: noopSetGeo,
+        updateDraft: noopUpdate,
+        saveDraftAsActiveAddress: noopSave,
+        clearAddress: noopClear,
+      };
+    }
     throw new Error("useLocation must be used within LocationProvider");
   }
   return ctx;
