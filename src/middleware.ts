@@ -5,6 +5,9 @@ import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "@/lib/admin-session"
 const APP_ACCESS_COOKIE_NAME = "app_access";
 const APP_ACCESS_PATH = "/coming-soon/access";
 const PUBLIC_FILE_REGEX = /\.(?:png|jpg|jpeg|svg|webp|gif|ico|css|js|map|txt|xml|json|woff2?|ttf|otf)$/i;
+const LAUNCH_CACHE_TTL_MS = 5000;
+let launchCache: { value: { isLive: boolean }; expiresAt: number } | null = null;
+const SERVER_DOWN_PATH = "/server-down";
 
 const roleRules: { test: (path: string) => boolean; roles: string[] }[] = [
   { test: (p) => p.startsWith("/ops/orders"), roles: ["superAdmin", "ops", "support", "finance"] },
@@ -22,6 +25,13 @@ export async function middleware(req: NextRequest) {
 
   if (pathname.startsWith("/_next") || pathname.startsWith("/api") || PUBLIC_FILE_REGEX.test(pathname)) {
     return NextResponse.next();
+  }
+
+  if (isServerDownEnabled()) {
+    if (pathname === SERVER_DOWN_PATH || pathname.startsWith(`${SERVER_DOWN_PATH}/`)) {
+      return NextResponse.next();
+    }
+    return NextResponse.redirect(new URL(SERVER_DOWN_PATH, req.url));
   }
 
   if (pathname.startsWith("/coming-soon/admin")) {
@@ -108,11 +118,14 @@ export async function middleware(req: NextRequest) {
 
   const accessCode = process.env.APP_ACCESS_CODE ?? "";
   if (accessCode) {
-    const accessCookie = req.cookies.get(APP_ACCESS_COOKIE_NAME)?.value ?? "";
-    if (accessCookie !== accessCode) {
-      const accessUrl = new URL(APP_ACCESS_PATH, req.url);
-      accessUrl.searchParams.set("next", pathname);
-      return NextResponse.redirect(accessUrl);
+    const launch = await getLaunchState(req);
+    if (!launch.isLive) {
+      const accessCookie = req.cookies.get(APP_ACCESS_COOKIE_NAME)?.value ?? "";
+      if (accessCookie !== accessCode) {
+        const accessUrl = new URL(APP_ACCESS_PATH, req.url);
+        accessUrl.searchParams.set("next", pathname);
+        return NextResponse.redirect(accessUrl);
+      }
     }
   }
 
@@ -175,4 +188,25 @@ function getAdminCredentials() {
 
 function hasAdminEnv() {
   return getAdminCredentials().ready;
+}
+
+function isServerDownEnabled() {
+  return (process.env.SERVER_DOWN_MODE ?? "true").toLowerCase() === "true";
+}
+
+async function getLaunchState(req: NextRequest) {
+  const now = Date.now();
+  if (launchCache && launchCache.expiresAt > now) {
+    return launchCache.value;
+  }
+  try {
+    const res = await fetch(new URL("/api/launch", req.nextUrl.origin), { cache: "no-store" });
+    if (!res.ok) throw new Error("launch fetch failed");
+    const data = (await res.json()) as { isLive?: boolean };
+    const value = { isLive: Boolean(data?.isLive) };
+    launchCache = { value, expiresAt: now + LAUNCH_CACHE_TTL_MS };
+    return value;
+  } catch {
+    return { isLive: false };
+  }
 }
