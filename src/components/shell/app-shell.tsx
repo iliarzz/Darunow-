@@ -18,6 +18,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const bare =
     pathname?.startsWith("/ops") ||
     pathname?.startsWith("/coming-soon") ||
+    pathname?.startsWith("/server-down") ||
     pathname?.startsWith("/vision") ||
     pathname?.startsWith("/vission") ||
     pathname?.startsWith("/pharmacy") ||
