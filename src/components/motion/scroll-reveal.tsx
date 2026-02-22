@@ -15,7 +15,7 @@ export function ScrollReveal({
   children,
   className,
   delay = 0,
-  repeat = true,
+  repeat = false,
   amount = 0.35,
 }: ScrollRevealProps) {
   const reduceMotion = useReducedMotion();
@@ -27,10 +27,10 @@ export function ScrollReveal({
   return (
     <motion.div
       className={cn(className)}
-      initial={{ opacity: 0, y: 30, scale: 0.98 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: !repeat, amount }}
-      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay }}
     >
       {children}
     </motion.div>

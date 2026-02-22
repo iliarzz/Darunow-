@@ -193,6 +193,23 @@ body {
   }
 }
 
+@media (max-width: 1024px), (pointer: coarse) {
+  .animate-floatSlow,
+  .animate-floatSlower,
+  .light-sweep {
+    animation: none !important;
+  }
+
+  .light-sweep {
+    transform: none !important;
+    opacity: 0.14 !important;
+  }
+
+  .noise {
+    display: none !important;
+  }
+}
+
 @keyframes floatSlow {
   0% {
     transform: translate(-50%, 0) scale(1);

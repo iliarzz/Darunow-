@@ -11,18 +11,12 @@ type ParallaxProps = {
 };
 
 export function Parallax({ children, className, distance = 22 }: ParallaxProps) {
-  const ref = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
-  const [isMobile, setIsMobile] = useState(false);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"],
-  });
-  const y = useTransform(scrollYProgress, [0, 1], [distance, -distance]);
+  const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
-    const media = window.matchMedia("(max-width: 768px)");
-    const update = () => setIsMobile(media.matches);
+    const media = window.matchMedia("(min-width: 1024px) and (pointer: fine)");
+    const update = () => setEnabled(media.matches);
     update();
     if (media.addEventListener) {
       media.addEventListener("change", update);
@@ -38,13 +32,29 @@ export function Parallax({ children, className, distance = 22 }: ParallaxProps) 
     };
   }, []);
 
-  if (reduceMotion || isMobile) {
-    return (
-      <div ref={ref} className={cn(className)}>
-        {children}
-      </div>
-    );
-  }
+  if (reduceMotion || !enabled) return <div className={cn(className)}>{children}</div>;
+  return (
+    <ParallaxMotion className={className} distance={distance}>
+      {children}
+    </ParallaxMotion>
+  );
+}
+
+function ParallaxMotion({
+  children,
+  className,
+  distance,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  distance: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+  const y = useTransform(scrollYProgress, [0, 1], [distance, -distance]);
 
   return (
     <motion.div ref={ref} className={cn(className)} style={{ y }}>

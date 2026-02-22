@@ -63,10 +63,26 @@ export function ComingSoonHeader({
       setCompact(false);
       return;
     }
-    const onScroll = () => setCompact(window.scrollY > 24);
-    onScroll();
+    let frame = 0;
+    const updateCompact = () => {
+      const next = window.scrollY > 24;
+      setCompact((prev) => (prev === next ? prev : next));
+    };
+    const onScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        updateCompact();
+      });
+    };
+    updateCompact();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+    };
   }, [compactOnScroll, isDesktop]);
 
   useEffect(() => {

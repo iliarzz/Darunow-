@@ -73,6 +73,7 @@ export function ClinicRegistrationForm() {
     note: false,
   });
   const [errors, setErrors] = useState<Partial<Record<FieldName, string>>>({});
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const showError = (field: FieldName) => touched[field] && errors[field];
   const inputBase =
@@ -83,11 +84,18 @@ export function ClinicRegistrationForm() {
   const updateValue = (field: FieldName, value: string) => {
     const nextValues = { ...values, [field]: value };
     setValues(nextValues);
-    setErrors(validate(nextValues));
+    if (hasSubmitted || touched[field]) {
+      setErrors(validate(nextValues));
+    }
+  };
+  const handleFieldBlur = (field: FieldName) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    setErrors(validate(values));
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setHasSubmitted(true);
     const nextErrors = validate(values);
     setErrors(nextErrors);
     setTouched((prev) => {
@@ -125,7 +133,7 @@ export function ClinicRegistrationForm() {
             placeholder="نام کلینیک"
             value={values.clinicName}
             onChange={(event) => updateValue("clinicName", event.target.value)}
-            onBlur={() => setTouched((prev) => ({ ...prev, clinicName: true }))}
+            onBlur={() => handleFieldBlur("clinicName")}
             aria-invalid={Boolean(showError("clinicName"))}
             aria-describedby="clinicName-error"
             className={`${inputBase} ${showError("clinicName") ? errorClasses : normalClasses}`}
@@ -146,7 +154,7 @@ export function ClinicRegistrationForm() {
             placeholder="نام مسئول"
             value={values.managerName}
             onChange={(event) => updateValue("managerName", event.target.value)}
-            onBlur={() => setTouched((prev) => ({ ...prev, managerName: true }))}
+            onBlur={() => handleFieldBlur("managerName")}
             aria-invalid={Boolean(showError("managerName"))}
             aria-describedby="managerName-error"
             className={`${inputBase} ${showError("managerName") ? errorClasses : normalClasses}`}
@@ -167,7 +175,7 @@ export function ClinicRegistrationForm() {
             placeholder="شهر"
             value={values.city}
             onChange={(event) => updateValue("city", event.target.value)}
-            onBlur={() => setTouched((prev) => ({ ...prev, city: true }))}
+            onBlur={() => handleFieldBlur("city")}
             aria-invalid={Boolean(showError("city"))}
             aria-describedby="city-error"
             className={`${inputBase} ${showError("city") ? errorClasses : normalClasses}`}
@@ -186,7 +194,7 @@ export function ClinicRegistrationForm() {
             placeholder="شماره"
             value={values.phone}
             onChange={(event) => updateValue("phone", formatIranPhone(event.target.value))}
-            onBlur={() => setTouched((prev) => ({ ...prev, phone: true }))}
+            onBlur={() => handleFieldBlur("phone")}
             aria-invalid={Boolean(showError("phone"))}
             aria-describedby="phone-error"
             className={`peer ltr ${inputBase} text-left placeholder:text-white/40 placeholder-shown:text-right ${
@@ -207,7 +215,7 @@ export function ClinicRegistrationForm() {
             placeholder="ایمیل کاری"
             value={values.email}
             onChange={(event) => updateValue("email", event.target.value)}
-            onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
+            onBlur={() => handleFieldBlur("email")}
             aria-invalid={Boolean(showError("email"))}
             aria-describedby="email-error"
             className={`email-ltr ${inputBase} ${showError("email") ? errorClasses : normalClasses}`}
