@@ -16,7 +16,7 @@ export default function ClinicRegisterSuccessPage() {
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute -top-24 right-1/3 h-44 w-44 rounded-full bg-[#7EB3CC]/18 blur-3xl" />
             <div className="absolute -bottom-28 left-1/4 h-44 w-60 rounded-full bg-white/10 blur-3xl" />
-            <div className="light-sweep absolute -inset-y-1/2 left-0 w-[160%] opacity-35" />
+
           </div>
 
           <div className="relative space-y-4">

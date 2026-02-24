@@ -100,7 +100,7 @@ export default function VisionPage() {
         <div className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden">
           <div className="absolute left-1/4 top-16 h-40 w-40 rounded-full bg-[#7EB3CC]/18 blur-[120px]" />
           <div className="absolute right-1/4 top-6 h-44 w-56 rounded-full bg-white/10 blur-[140px]" />
-          <div className="light-sweep absolute -inset-y-1/2 left-0 w-[180%] opacity-35" />
+
         </div>
 
         <div className="relative grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">

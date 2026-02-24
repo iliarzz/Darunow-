@@ -50,7 +50,7 @@ function AdminLoginForm() {
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -top-20 right-1/3 h-40 w-40 rounded-full bg-[#7EB3CC]/18 blur-3xl" />
           <div className="absolute -bottom-24 left-1/4 h-40 w-52 rounded-full bg-white/10 blur-3xl" />
-          <div className="light-sweep absolute -inset-y-1/2 left-0 w-[160%] opacity-30" />
+
         </div>
 
         <div className="relative space-y-6">

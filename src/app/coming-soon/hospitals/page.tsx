@@ -44,7 +44,7 @@ export default function HospitalRegisterPage() {
         <div className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden">
           <div className="absolute left-1/4 top-8 h-44 w-52 rounded-full bg-[#7EB3CC]/16 blur-[130px]" />
           <div className="absolute right-1/3 top-28 h-56 w-64 rounded-full bg-white/10 blur-[160px]" />
-          <div className="light-sweep absolute -inset-y-1/2 left-0 w-[200%] opacity-45" />
+
         </div>
 
         <div className="relative grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:[direction:ltr]">
@@ -275,7 +275,7 @@ function CommandDeck() {
     <div className="rounded-[38px] bg-gradient-to-br from-white/20 via-white/5 to-transparent p-[1px]">
       <div className="relative rounded-[36px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_40px_140px_rgba(0,0,0,0.6)]">
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[36px]">
-          <div className="light-sweep absolute -inset-y-1/2 left-0 w-[200%] opacity-35" />
+
         </div>
         <div className="flex items-center justify-between">
           <div className="text-sm font-semibold">اتاق فرمان بیمارستان</div>

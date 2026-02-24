@@ -80,7 +80,7 @@ export default function ClinicRegisterPage() {
         <div className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden">
           <div className="absolute left-1/4 top-10 h-40 w-64 rounded-full bg-[#7EB3CC]/18 blur-[120px]" />
           <div className="absolute right-1/4 top-24 h-52 w-52 rounded-full bg-white/10 blur-[140px]" />
-          <div className="light-sweep absolute -inset-y-1/2 left-0 w-[180%] opacity-45" />
+
         </div>
 
         <div className="relative flex flex-col items-center text-center">
@@ -162,7 +162,7 @@ export default function ClinicRegisterPage() {
             <Parallax distance={24}>
               <div className="relative rounded-[34px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_40px_140px_rgba(0,0,0,0.6)]">
                 <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[34px]">
-                  <div className="light-sweep absolute -inset-y-1/2 left-0 w-[160%] opacity-35" />
+
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-semibold">تپش کلینیک</div>

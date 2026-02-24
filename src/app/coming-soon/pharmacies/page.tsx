@@ -72,7 +72,7 @@ export default function PharmacyRegisterPage() {
 
       <section className={`relative mx-auto min-h-[92vh] max-w-7xl px-6 pb-20 pt-12 ${snapSection}`}>
         <div className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden">
-          <div className="light-sweep absolute -inset-y-1/2 left-0 w-[180%] opacity-50" />
+
         </div>
 
         <div className="relative grid gap-12 lg:grid-cols-12 lg:items-center">
@@ -136,7 +136,7 @@ export default function PharmacyRegisterPage() {
               <Parallax distance={26} className="rounded-[38px] bg-gradient-to-br from-white/20 via-white/5 to-transparent p-[1px]">
                 <div className="relative rounded-[36px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_40px_140px_rgba(0,0,0,0.6)]">
                   <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[36px]">
-                    <div className="light-sweep absolute -inset-y-1/2 left-0 w-[200%] opacity-35" />
+
                   </div>
                   <div className="flex flex-col items-center justify-between gap-2 text-center md:flex-row md:text-right">
                     <div className="text-sm font-semibold">پیش‌نمایش پنل داروخانه</div>

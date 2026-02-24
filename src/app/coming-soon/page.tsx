@@ -26,7 +26,7 @@ export default function ComingSoonPage() {
     <>
       <section className="relative mx-auto min-h-[90vh] max-w-7xl px-6 pb-16 pt-10">
         <div className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden">
-          <div className="light-sweep absolute -inset-y-1/2 left-0 w-[180%] opacity-50" />
+
         </div>
         <Parallax
           distance={30}
@@ -115,7 +115,7 @@ export default function ComingSoonPage() {
               >
                 <div className="relative rounded-[36px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl shadow-[0_40px_140px_rgba(0,0,0,0.6)]">
                   <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[36px]">
-                    <div className="light-sweep absolute -inset-y-1/2 left-0 w-[200%] opacity-35" />
+
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="text-sm font-semibold">پیش‌نمایش تجربه</div>
