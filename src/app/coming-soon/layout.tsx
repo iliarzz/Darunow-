@@ -2,7 +2,7 @@ import { ComingSoonHeader } from "@/components/coming-soon/coming-soon-header";
 
 export default function ComingSoonLayout({ children }: { children: React.ReactNode }) {
   return (
-    <main dir="rtl" lang="fa" className="relative min-h-screen bg-[#070A0F] text-white no-copy">
+    <main dir="rtl" lang="fa" className="coming-soon-theme relative min-h-screen bg-[#070A0F] text-white no-copy">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-52 left-1/2 hidden h-[640px] w-[640px] -translate-x-1/2 rounded-full bg-[#1D456B]/55 blur-[140px] animate-floatSlow md:block" />
         <div className="absolute top-20 right-[-200px] hidden h-[480px] w-[480px] rounded-full bg-[#7EB3CC]/25 blur-[140px] animate-floatSlower lg:block" />

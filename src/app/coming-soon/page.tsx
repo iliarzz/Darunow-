@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Parallax } from "@/components/motion/parallax";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
+import { TrustStrip } from "@/components/coming-soon/trust-strip";
 import { WaitlistCard } from "./waitlist-card";
 
 export const metadata: Metadata = {
@@ -24,7 +25,7 @@ const featureChips = ["پروفایل بیمار", "پرداخت امن", "پی�
 export default function ComingSoonPage() {
   return (
     <>
-      <section className="relative mx-auto min-h-[90vh] max-w-7xl px-6 pb-16 pt-10">
+      <section className="relative cs-section mx-auto min-h-[90vh] max-w-7xl px-6">
         <div className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden">
 
         </div>
@@ -40,7 +41,7 @@ export default function ComingSoonPage() {
           </ScrollReveal>
 
           <ScrollReveal delay={0.05}>
-            <h1 className="text-balance text-[clamp(2.6rem,6vw,4.6rem)] font-semibold leading-[1.18] tracking-normal">
+            <h1 className="cs-title text-balance text-[clamp(2.6rem,6vw,4.6rem)] font-semibold">
               دارونَو — تجربۀ داروخانۀ دیجیتال
               <span className="mt-4 block bg-gradient-to-l from-[#7EB3CC] via-white to-white bg-clip-text text-transparent">
                 سفارش سریع، پیگیری دقیق، پشتیبانی واقعی.
@@ -49,7 +50,7 @@ export default function ComingSoonPage() {
           </ScrollReveal>
 
           <ScrollReveal delay={0.1}>
-            <p className="max-w-2xl text-base leading-7 text-white/70 md:text-lg">
+            <p className="cs-body max-w-2xl text-white/70 md:text-lg">
               دارونَو به‌زودی راه‌اندازی می‌شود. برای دریافت دعوت بتا، ایمیل‌تان را ثبت کنید.
             </p>
           </ScrollReveal>
@@ -78,7 +79,13 @@ export default function ComingSoonPage() {
         </Parallax>
       </section>
 
-      <section className="mx-auto flex min-h-[72vh] max-w-6xl items-center px-6 pb-24">
+      <section className="mx-auto max-w-7xl px-6 pb-8">
+        <ScrollReveal>
+          <TrustStrip />
+        </ScrollReveal>
+      </section>
+
+      <section className="cs-section mx-auto flex min-h-[72vh] max-w-6xl items-center px-6">
         <ScrollReveal>
           <div className="rounded-[32px] border border-white/12 bg-white/5 px-6 py-10 text-center backdrop-blur-xl md:px-10">
             <div className="text-xs text-white/45">سه اصل تجربۀ دارونَو</div>
@@ -92,13 +99,13 @@ export default function ComingSoonPage() {
         </ScrollReveal>
       </section>
 
-      <section className="mx-auto flex min-h-[86vh] max-w-7xl items-center px-6 pb-24">
+      <section className="cs-section mx-auto flex min-h-[86vh] max-w-7xl items-center px-6">
         <ScrollReveal>
           <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
             <div className="space-y-4 lg:col-span-5">
               <div className="text-xs text-white/45">پیش‌نمایش نسخه وب</div>
               <h2 className="text-2xl font-semibold md:text-3xl">همه‌چیز شفاف، سریع و یکپارچه</h2>
-              <p className="text-sm leading-7 text-white/70 md:text-base">
+              <p className="cs-body text-white/70 md:text-base">
                 مسیر سفارش تا تحویل در یک تجربۀ آرام و دقیق جمع می‌شود — مثل بهترین محصولات پریمیوم.
               </p>
               <div className="flex flex-wrap gap-2">
@@ -161,7 +168,7 @@ export default function ComingSoonPage() {
         </ScrollReveal>
       </section>
 
-      <section id="waitlist" className="mx-auto flex min-h-[72vh] max-w-4xl items-center px-6 pb-24">
+      <section id="waitlist" className="cs-section mx-auto flex min-h-[72vh] max-w-4xl items-center px-6">
         <ScrollReveal>
           <WaitlistCard />
         </ScrollReveal>

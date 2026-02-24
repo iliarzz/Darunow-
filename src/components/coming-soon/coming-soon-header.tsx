@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ export function ComingSoonHeader({
   className,
   compactOnScroll = true,
 }: ComingSoonHeaderProps) {
+  const pathname = usePathname();
   const [compact, setCompact] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -160,9 +162,9 @@ export function ComingSoonHeader({
                       </div>
                     </div>
                   </Link>
-                <div className="flex items-center gap-2 md:hidden">
+                  <div className="flex items-center gap-2 md:hidden">
                     <MenuButton compact={compact} open={menuOpen} controls={menuId} onClick={() => setMenuOpen((v) => !v)} />
-                </div>
+                  </div>
                 </div>
 
                 <div className="hidden h-6 w-px bg-white/10 md:block" />
@@ -175,27 +177,21 @@ export function ComingSoonHeader({
                   aria-label="بخش‌ها"
                 >
                   {navItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className="rounded-full border border-white/10 bg-white/5 px-3 py-1 transition hover:border-white/30 hover:bg-white/10"
-                    >
-                      {item.label}
-                    </Link>
+                    <HeaderNavLink key={item.href} item={item} pathname={pathname} />
                   ))}
                 </nav>
               </div>
 
-            <Link
-              href={ctaHref}
-              className={cn(
-                "hidden items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 text-xs font-semibold text-white/80 transition hover:border-white/30 hover:bg-white/10 md:inline-flex",
-                compact ? "py-1.5" : "py-2"
-              )}
-            >
-              {ctaLabel}
-              <ArrowLeft className="h-3.5 w-3.5 text-white/40" />
-            </Link>
+              <Link
+                href={ctaHref}
+                className={cn(
+                  "hidden items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 text-xs font-semibold text-white/80 transition hover:border-white/30 hover:bg-white/10 md:inline-flex",
+                  compact ? "py-1.5" : "py-2"
+                )}
+              >
+                {ctaLabel}
+                <ArrowLeft className="h-3.5 w-3.5 text-white/40" />
+              </Link>
             </div>
           </div>
         </div>
@@ -236,14 +232,7 @@ export function ComingSoonHeader({
               </div>
               <div className="mt-4 flex flex-col gap-2">
                 {navItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMenuOpen(false)}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 transition hover:border-white/30 hover:bg-white/10"
-                  >
-                    {item.label}
-                  </Link>
+                  <HeaderMenuLink key={item.href} item={item} pathname={pathname} onClick={() => setMenuOpen(false)} />
                 ))}
               </div>
               <Link
@@ -259,6 +248,59 @@ export function ComingSoonHeader({
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+function isNavItemActive(pathname: string | null, href: string) {
+  if (!pathname) return false;
+  if (href === "/coming-soon") {
+    return pathname === href || pathname === "/coming-soon/";
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function HeaderNavLink({ item, pathname }: { item: NavItem; pathname: string | null }) {
+  const active = isNavItemActive(pathname, item.href);
+  return (
+    <Link
+      href={item.href}
+      className={cn(
+        "rounded-full border px-3 py-1 transition",
+        active
+          ? "border-[#7EB3CC]/50 bg-[#7EB3CC]/15 text-white ring-1 ring-[#7EB3CC]/30"
+          : "border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10"
+      )}
+      aria-current={active ? "page" : undefined}
+    >
+      {item.label}
+    </Link>
+  );
+}
+
+function HeaderMenuLink({
+  item,
+  pathname,
+  onClick,
+}: {
+  item: NavItem;
+  pathname: string | null;
+  onClick: () => void;
+}) {
+  const active = isNavItemActive(pathname, item.href);
+  return (
+    <Link
+      href={item.href}
+      onClick={onClick}
+      className={cn(
+        "rounded-2xl border px-4 py-2 text-sm transition",
+        active
+          ? "border-[#7EB3CC]/45 bg-[#7EB3CC]/12 text-white"
+          : "border-white/10 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10"
+      )}
+      aria-current={active ? "page" : undefined}
+    >
+      {item.label}
+    </Link>
   );
 }
 

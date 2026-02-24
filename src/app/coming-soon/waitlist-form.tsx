@@ -13,10 +13,15 @@ type WaitlistFormProps = {
 export function WaitlistForm({ className }: WaitlistFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!email.trim()) return;
+    setSubmitted(true);
+    if (!emailIsValid || submitting) return;
+    setSubmitting(true);
     addRegistration({
       id: createRegistrationId(),
       type: "waitlist",
@@ -40,15 +45,23 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
           placeholder="ایمیل شما"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
+          aria-invalid={submitted && !emailIsValid}
           className="email-ltr h-12 flex-1 rounded-2xl border border-white/12 bg-black/30 px-4 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-white/18 focus:bg-black/35"
         />
         <button
           type="submit"
-          className="h-12 rounded-2xl bg-white px-5 text-sm font-semibold text-black transition hover:translate-y-[-1px] active:translate-y-0"
+          disabled={!emailIsValid || submitting}
+          className="h-12 rounded-2xl bg-white px-5 text-sm font-semibold text-black transition hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
         >
-          ثبت
+          {submitting ? "در حال ثبت..." : "ثبت"}
         </button>
       </form>
+      {submitted && !emailIsValid ? (
+        <div className="text-center text-xs text-rose-200/90">ایمیل معتبر وارد کنید.</div>
+      ) : null}
+      {emailIsValid ? (
+        <div className="text-center text-xs text-emerald-200/85">فرم آماده ثبت است.</div>
+      ) : null}
       <div className="text-center text-xs text-white/45">
         بدون اسپم. فقط اطلاع‌رسانی انتشار و دعوت بتا.
       </div>

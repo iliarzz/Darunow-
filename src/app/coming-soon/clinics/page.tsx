@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Parallax } from "@/components/motion/parallax";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
+import { StickyPartnerCta } from "@/components/coming-soon/sticky-partner-cta";
+import { TrustStrip } from "@/components/coming-soon/trust-strip";
 import { ClinicRegistrationCard } from "./registration-form";
 
 export const metadata: Metadata = {
@@ -76,7 +78,7 @@ const registerNotes = [
 export default function ClinicRegisterPage() {
   return (
     <>
-      <section className="relative mx-auto min-h-[88vh] max-w-7xl px-6 pb-20 pt-14">
+      <section className="relative cs-section mx-auto min-h-[88vh] max-w-7xl px-6">
         <div className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden">
           <div className="absolute left-1/4 top-10 h-40 w-64 rounded-full bg-[#7EB3CC]/18 blur-[120px]" />
           <div className="absolute right-1/4 top-24 h-52 w-52 rounded-full bg-white/10 blur-[140px]" />
@@ -92,7 +94,7 @@ export default function ClinicRegisterPage() {
           </ScrollReveal>
 
           <ScrollReveal delay={0.05}>
-            <h1 className="mt-4 text-balance text-[clamp(2.6rem,6vw,4.2rem)] font-semibold leading-[1.18] tracking-normal">
+            <h1 className="cs-title mt-4 text-balance text-[clamp(2.6rem,6vw,4.2rem)] font-semibold">
               مدیریت کلینیک با ریتمی آرام و دقیق
               <span className="mt-3 block bg-gradient-to-l from-[#7EB3CC] via-white to-white bg-clip-text text-transparent">
                 نوبت، نسخه، پیگیری — در یک جریان هماهنگ.
@@ -101,7 +103,7 @@ export default function ClinicRegisterPage() {
           </ScrollReveal>
 
           <ScrollReveal delay={0.1}>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/70 md:text-base">
+            <p className="cs-body mt-3 max-w-2xl text-white/70 md:text-base">
               دارونَو برای کلینیک‌هایی طراحی شده که نظم، سرعت و تجربۀ بیمار برایشان اولویت است.
               ثبت اولیه کوتاه است و مسیر همکاری شفاف می‌ماند.
             </p>
@@ -139,7 +141,13 @@ export default function ClinicRegisterPage() {
         </div>
       </section>
 
-      <section className="mx-auto flex min-h-[82vh] max-w-6xl items-center px-6 pb-24">
+      <section className="mx-auto max-w-6xl px-6 pb-8">
+        <ScrollReveal>
+          <TrustStrip />
+        </ScrollReveal>
+      </section>
+
+      <section className="cs-section mx-auto flex min-h-[82vh] max-w-6xl items-center px-6">
         <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <ScrollReveal className="order-2 lg:order-1">
             <div className="space-y-4">
@@ -201,7 +209,7 @@ export default function ClinicRegisterPage() {
         </div>
       </section>
 
-      <section id="benefits" className="mx-auto flex min-h-[92vh] max-w-6xl items-center px-6 pb-24">
+      <section id="benefits" className="cs-section mx-auto flex min-h-[92vh] max-w-6xl items-center px-6">
         <div className="w-full space-y-8">
           <ScrollReveal>
             <div className="rounded-[32px] border border-white/12 bg-white/5 px-6 py-8 text-right backdrop-blur-xl md:px-8">
@@ -247,7 +255,7 @@ export default function ClinicRegisterPage() {
         </div>
       </section>
 
-      <section id="flow" className="mx-auto flex min-h-[72vh] max-w-6xl items-center px-6 pb-24">
+      <section id="flow" className="cs-section mx-auto flex min-h-[72vh] max-w-6xl items-center px-6">
         <div className="w-full">
           <ScrollReveal>
             <div className="rounded-[28px] border border-white/12 bg-white/5 p-6 text-center backdrop-blur-xl md:p-7">
@@ -278,7 +286,7 @@ export default function ClinicRegisterPage() {
         </div>
       </section>
 
-      <section id="register" className="mx-auto flex min-h-[88vh] max-w-6xl items-center px-6 pb-24">
+      <section id="register" className="cs-section mx-auto flex min-h-[88vh] max-w-6xl items-center px-6">
         <div className="w-full">
           <ScrollReveal>
             <div className="mx-auto max-w-4xl text-center">
@@ -310,6 +318,7 @@ export default function ClinicRegisterPage() {
           </ScrollReveal>
         </div>
       </section>
+      <StickyPartnerCta href="#register" />
     </>
   );
 }

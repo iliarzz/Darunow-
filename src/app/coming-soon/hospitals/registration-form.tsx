@@ -78,6 +78,12 @@ export function HospitalRegistrationForm() {
   const [errors, setErrors] = useState<Partial<Record<FieldName, string>>>({});
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
+  const currentErrors = validate(values);
+  const completedRequired = requiredFields.filter((field) => !currentErrors[field]).length;
+  const remainingRequired = requiredFields.length - completedRequired;
+  const progressPercent = Math.round((completedRequired / requiredFields.length) * 100);
+  const isFormValid = remainingRequired === 0;
+
   const showError = (field: FieldName) => touched[field] && errors[field];
   const inputBase =
     "h-12 w-full rounded-2xl border bg-black/30 px-4 text-sm text-white placeholder:text-white/40 outline-none transition focus:bg-black/35";
@@ -108,7 +114,7 @@ export function HospitalRegistrationForm() {
       });
       return next;
     });
-    if (Object.keys(nextErrors).length > 0) return;
+    if (Object.keys(nextErrors).length > 0 || !isFormValid) return;
     addRegistration({
       id: createRegistrationId(),
       type: "hospital",
@@ -131,6 +137,22 @@ export function HospitalRegistrationForm() {
 
   return (
     <form className="mx-auto w-full max-w-2xl space-y-3" onSubmit={handleSubmit} noValidate>
+      <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+        <div className="flex items-center justify-between text-xs text-white/65">
+          <span>تکمیل فرم</span>
+          <span>{progressPercent}%</span>
+        </div>
+        <div className="mt-2 h-1.5 rounded-full bg-white/10">
+          <div
+            className="h-1.5 rounded-full bg-gradient-to-l from-[#7EB3CC] to-white/30"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+        <div className="mt-2 text-xs text-white/60">
+          {isFormValid ? "فرم آماده ارسال است." : `${remainingRequired} فیلد الزامی باقی مانده است.`}
+        </div>
+      </div>
+
       <div className="grid gap-x-3 gap-y-2 md:grid-cols-2">
         <div className={fieldWrapper}>
           <input
@@ -265,10 +287,14 @@ export function HospitalRegistrationForm() {
 
       <button
         type="submit"
-        className="h-12 w-full rounded-2xl bg-white px-5 text-sm font-semibold text-[#050913] shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition hover:translate-y-[-1px] active:translate-y-0"
+        disabled={!isFormValid}
+        className="h-12 w-full rounded-2xl bg-white px-5 text-sm font-semibold text-[#050913] shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
       >
         ثبت درخواست همکاری
       </button>
+      {isFormValid ? (
+        <div className="text-center text-xs text-emerald-200/85">همه فیلدهای الزامی کامل است.</div>
+      ) : null}
     </form>
   );
 }
@@ -350,13 +376,18 @@ export function HospitalRegistrationCard() {
                     <span className="h-1 w-6 rounded-full bg-gradient-to-l from-[#7EB3CC] to-white/30" />
                     فرم ثبت بیمارستان
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setView("intro")}
-                    className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/60 transition hover:border-white/25 hover:text-white/80"
-                  >
-                    بازگشت
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/60">
+                      مرحله ۲ از ۲
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setView("intro")}
+                      className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/60 transition hover:border-white/25 hover:text-white/80"
+                    >
+                      بازگشت
+                    </button>
+                  </div>
                 </div>
 
                 <div className="mt-4 mx-auto max-w-2xl text-right">

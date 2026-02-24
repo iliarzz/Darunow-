@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Parallax } from "@/components/motion/parallax";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
+import { StickyPartnerCta } from "@/components/coming-soon/sticky-partner-cta";
+import { TrustStrip } from "@/components/coming-soon/trust-strip";
 import { HospitalRegistrationCard } from "./registration-form";
 
 export const metadata: Metadata = {
@@ -40,7 +42,7 @@ const registerNotes = [
 export default function HospitalRegisterPage() {
   return (
     <>
-      <section className="relative mx-auto min-h-[92vh] max-w-7xl px-6 pb-20 pt-12">
+      <section className="relative cs-section mx-auto min-h-[92vh] max-w-7xl px-6">
         <div className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden">
           <div className="absolute left-1/4 top-8 h-44 w-52 rounded-full bg-[#7EB3CC]/16 blur-[130px]" />
           <div className="absolute right-1/3 top-28 h-56 w-64 rounded-full bg-white/10 blur-[160px]" />
@@ -57,7 +59,7 @@ export default function HospitalRegisterPage() {
             </ScrollReveal>
 
             <ScrollReveal delay={0.05}>
-              <h1 className="text-balance text-[clamp(2.4rem,5vw,3.8rem)] font-semibold leading-[1.18] tracking-normal">
+              <h1 className="cs-title text-balance text-[clamp(2.4rem,5vw,3.8rem)] font-semibold">
                 هماهنگی حیاتی، با دید لحظه‌ای
                 <span className="mt-3 block bg-gradient-to-l from-[#7EB3CC] via-white to-white bg-clip-text text-transparent">
                   اورژانس، ICU، انتقال — در یک اتاق فرمان.
@@ -66,7 +68,7 @@ export default function HospitalRegisterPage() {
             </ScrollReveal>
 
             <ScrollReveal delay={0.1}>
-              <p className="text-sm leading-7 text-white/70 md:text-base">
+              <p className="cs-body text-white/70 md:text-base">
                 دارونَو برای بیمارستان‌هایی است که تصمیم‌های حساس باید سریع، دقیق و هماهنگ باشد.
                 مسیر ثبت کوتاه است و همکاری مرحله‌ای پیش می‌رود.
               </p>
@@ -111,7 +113,13 @@ export default function HospitalRegisterPage() {
         </div>
       </section>
 
-      <section id="capabilities" className="mx-auto flex min-h-[84vh] max-w-6xl items-center px-6 pb-24">
+      <section className="mx-auto max-w-6xl px-6 pb-8">
+        <ScrollReveal>
+          <TrustStrip />
+        </ScrollReveal>
+      </section>
+
+      <section id="capabilities" className="cs-section mx-auto flex min-h-[84vh] max-w-6xl items-center px-6">
         <div className="w-full space-y-8">
           <ScrollReveal>
             <div className="rounded-[32px] border border-white/12 bg-white/5 px-6 py-8 text-right backdrop-blur-xl md:px-10">
@@ -178,7 +186,7 @@ export default function HospitalRegisterPage() {
         </div>
       </section>
 
-      <section id="flow" className="mx-auto flex min-h-[76vh] max-w-6xl items-center px-6 pb-24">
+      <section id="flow" className="cs-section mx-auto flex min-h-[76vh] max-w-6xl items-center px-6">
         <div className="w-full">
           <ScrollReveal>
             <div className="rounded-[28px] border border-white/12 bg-white/5 p-6 text-center backdrop-blur-xl md:p-7">
@@ -216,7 +224,7 @@ export default function HospitalRegisterPage() {
         </div>
       </section>
 
-      <section id="register" className="mx-auto flex min-h-[88vh] max-w-6xl items-center px-6 pb-24">
+      <section id="register" className="cs-section mx-auto flex min-h-[88vh] max-w-6xl items-center px-6">
         <div className="w-full">
           <ScrollReveal>
             <div className="mx-auto max-w-4xl text-center">
@@ -248,6 +256,7 @@ export default function HospitalRegisterPage() {
           </ScrollReveal>
         </div>
       </section>
+      <StickyPartnerCta href="#register" />
     </>
   );
 }

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Parallax } from "@/components/motion/parallax";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import { ScrollSnap } from "@/components/motion/scroll-snap";
+import { StickyPartnerCta } from "@/components/coming-soon/sticky-partner-cta";
+import { TrustStrip } from "@/components/coming-soon/trust-strip";
 import { PharmacyRegistrationCard } from "./registration-form";
 
 export const metadata: Metadata = {
@@ -70,7 +72,7 @@ export default function PharmacyRegisterPage() {
     <>
       <ScrollSnap paddingTop={72} />
 
-      <section className={`relative mx-auto min-h-[92vh] max-w-7xl px-6 pb-20 pt-12 ${snapSection}`}>
+      <section className={`relative cs-section mx-auto min-h-[92vh] max-w-7xl px-6 ${snapSection}`}>
         <div className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden">
 
         </div>
@@ -85,7 +87,7 @@ export default function PharmacyRegisterPage() {
             </ScrollReveal>
 
             <ScrollReveal delay={0.05}>
-              <h1 className="text-balance text-[clamp(2.2rem,5vw,3.6rem)] font-semibold leading-[1.18] tracking-normal">
+              <h1 className="cs-title text-balance text-[clamp(2.2rem,5vw,3.6rem)] font-semibold">
                 داروخانه شما، در شبکه دارونَو
                 <span className="mt-3 block bg-gradient-to-l from-[#7EB3CC] via-white to-white bg-clip-text text-transparent">
                   سفارش‌های محلی، تسویه شفاف، پشتیبانی اختصاصی.
@@ -94,7 +96,7 @@ export default function PharmacyRegisterPage() {
             </ScrollReveal>
 
             <ScrollReveal delay={0.1}>
-              <p className="text-sm leading-7 text-white/70 md:text-base">
+              <p className="cs-body text-white/70 md:text-base">
                 ثبت اولیه بسیار کوتاه است. بعد از بررسی، پنل داروخانه شما فعال می‌شود و به شبکه منتخب دارونَو می‌پیوندید.
               </p>
             </ScrollReveal>
@@ -171,9 +173,15 @@ export default function PharmacyRegisterPage() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-6xl px-6 pb-8">
+        <ScrollReveal>
+          <TrustStrip />
+        </ScrollReveal>
+      </section>
+
       <section
         id="benefits"
-        className={`mx-auto flex min-h-[78vh] max-w-6xl items-center px-6 pb-24 ${snapSection}`}
+        className={`cs-section mx-auto flex min-h-[78vh] max-w-6xl items-center px-6 ${snapSection}`}
       >
         <div className="w-full">
           <ScrollReveal>
@@ -211,7 +219,7 @@ export default function PharmacyRegisterPage() {
         </div>
       </section>
 
-      <section id="flow" className={`mx-auto flex min-h-[78vh] max-w-6xl items-center px-6 pb-24 ${snapSection}`}>
+      <section id="flow" className={`cs-section mx-auto flex min-h-[78vh] max-w-6xl items-center px-6 ${snapSection}`}>
         <div className="grid gap-10 lg:grid-cols-12 lg:items-start">
           <ScrollReveal className="lg:col-span-4">
             <div className="rounded-[28px] border border-white/12 bg-white/5 p-6 backdrop-blur-xl">
@@ -253,7 +261,7 @@ export default function PharmacyRegisterPage() {
 
       <section
         id="register"
-        className={`mx-auto flex min-h-[90vh] max-w-6xl items-center px-6 pb-24 ${snapSection}`}
+        className={`cs-section mx-auto flex min-h-[90vh] max-w-6xl items-center px-6 ${snapSection}`}
       >
         <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
           <ScrollReveal className="lg:col-span-5">
@@ -290,6 +298,7 @@ export default function PharmacyRegisterPage() {
           </ScrollReveal>
         </div>
       </section>
+      <StickyPartnerCta href="#register" />
     </>
   );
 }

@@ -130,6 +130,43 @@ body {
 }
 
 @layer utilities {
+  .coming-soon-theme {
+    --cs-card-radius: 30px;
+    --cs-card-border: rgba(255, 255, 255, 0.12);
+    --cs-card-bg: rgba(255, 255, 255, 0.05);
+    --cs-card-shadow: 0 30px 120px rgba(0, 0, 0, 0.5);
+  }
+  .coming-soon-theme .cs-title {
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  .coming-soon-theme .cs-body {
+    font-size: 0.95rem;
+    line-height: 1.72;
+  }
+  .cs-card {
+    border: 1px solid var(--cs-card-border);
+    background: var(--cs-card-bg);
+    border-radius: var(--cs-card-radius);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--cs-card-shadow);
+  }
+  .cs-chip {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 999px;
+  }
+  .cs-kicker {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 999px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.72);
+  }
+  .cs-section {
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Parallax } from "@/components/motion/parallax";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
+import { TrustStrip } from "@/components/coming-soon/trust-strip";
 
 export const metadata: Metadata = {
   title: "دارونَو — چشم‌انداز",
@@ -96,7 +97,7 @@ const futureSteps = [
 export default function VisionPage() {
   return (
     <>
-      <section className="relative mx-auto min-h-[82vh] max-w-6xl px-6 pb-16 pt-14">
+      <section className="relative cs-section mx-auto min-h-[82vh] max-w-6xl px-6">
         <div className="pointer-events-none absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 overflow-hidden">
           <div className="absolute left-1/4 top-16 h-40 w-40 rounded-full bg-[#7EB3CC]/18 blur-[120px]" />
           <div className="absolute right-1/4 top-6 h-44 w-56 rounded-full bg-white/10 blur-[140px]" />
@@ -113,7 +114,7 @@ export default function VisionPage() {
             </ScrollReveal>
 
             <ScrollReveal delay={0.05}>
-              <h1 className="mt-5 text-balance text-[clamp(2.6rem,6vw,4.3rem)] font-semibold leading-[1.18] tracking-normal">
+              <h1 className="cs-title mt-5 text-balance text-[clamp(2.6rem,6vw,4.3rem)] font-semibold">
                 سلامت، برای همیشه و برای همه
                 <span className="mt-4 block bg-gradient-to-l from-[#7EB3CC] via-white to-white bg-clip-text text-transparent">
                   تجربه‌ای انسانی، آرام و قابل اعتماد.
@@ -122,7 +123,7 @@ export default function VisionPage() {
             </ScrollReveal>
 
             <ScrollReveal delay={0.1}>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-white/70 md:text-base">
+              <p className="cs-body mt-4 max-w-2xl text-white/70 md:text-base">
                 دارونَو می‌خواهد سلامت دیگر وابسته به زمان، مکان یا شرایط خاص نباشد؛ دسترسی به خدمات
                 درمانی باید ساده، قابل اعتماد و انسانی باقی بماند — حتی در روزهای دشوار.
               </p>
@@ -163,7 +164,13 @@ export default function VisionPage() {
         </div>
       </section>
 
-      <section className="mx-auto flex min-h-[72vh] max-w-6xl items-center px-6 pb-20">
+      <section className="mx-auto max-w-6xl px-6 pb-8">
+        <ScrollReveal>
+          <TrustStrip />
+        </ScrollReveal>
+      </section>
+
+      <section className="cs-section mx-auto flex min-h-[72vh] max-w-6xl items-center px-6">
         <ScrollReveal>
           <div className="rounded-[34px] border border-white/12 bg-white/5 px-6 py-8 backdrop-blur-xl md:px-10">
             <div className="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-center">
@@ -200,7 +207,7 @@ export default function VisionPage() {
         </ScrollReveal>
       </section>
 
-      <section className="mx-auto flex min-h-[76vh] max-w-6xl items-center px-6 pb-24">
+      <section className="cs-section mx-auto flex min-h-[76vh] max-w-6xl items-center px-6">
         <div className="grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <ScrollReveal className="order-2 lg:order-1">
             <div className="space-y-4">
@@ -255,7 +262,7 @@ export default function VisionPage() {
         </div>
       </section>
 
-      <section className="mx-auto flex min-h-[68vh] max-w-6xl items-center px-6 pb-20">
+      <section className="cs-section mx-auto flex min-h-[68vh] max-w-6xl items-center px-6">
         <div className="w-full space-y-8">
           <ScrollReveal>
             <div className="flex flex-col gap-3 text-right">
@@ -284,7 +291,7 @@ export default function VisionPage() {
         </div>
       </section>
 
-      <section className="mx-auto flex min-h-[68vh] max-w-6xl items-center px-6 pb-24">
+      <section className="cs-section mx-auto flex min-h-[68vh] max-w-6xl items-center px-6">
         <ScrollReveal>
           <div className="rounded-[34px] border border-white/12 bg-white/5 px-6 py-10 backdrop-blur-xl md:px-10">
             <div className="text-xs text-white/45">نگاه ما به آینده</div>
@@ -313,7 +320,7 @@ export default function VisionPage() {
         </ScrollReveal>
       </section>
 
-      <section className="mx-auto flex min-h-[54vh] max-w-5xl items-center px-6 pb-24">
+      <section className="cs-section mx-auto flex min-h-[54vh] max-w-5xl items-center px-6">
         <ScrollReveal>
           <div className="relative overflow-hidden rounded-[36px] border border-white/12 bg-white/5 px-6 py-12 text-center backdrop-blur-xl md:px-10">
             <div className="pointer-events-none absolute inset-0">
