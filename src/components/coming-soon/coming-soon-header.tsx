@@ -182,13 +182,13 @@ export function ComingSoonHeader({
                 </nav>
               </div>
 
-              <Link
-                href={ctaHref}
-                className={cn(
-                  "hidden items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 text-xs font-semibold text-white/80 transition hover:border-white/30 hover:bg-white/10 md:inline-flex",
-                  compact ? "py-1.5" : "py-2"
-                )}
-              >
+            <Link
+              href={ctaHref}
+              className={cn(
+                "cs-hover-smooth hidden items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 text-xs font-semibold text-white/80 transition hover:border-white/30 hover:bg-white/10 md:inline-flex",
+                compact ? "py-1.5" : "py-2"
+              )}
+            >
                 {ctaLabel}
                 <ArrowLeft className="h-3.5 w-3.5 text-white/40" />
               </Link>
@@ -214,10 +214,10 @@ export function ComingSoonHeader({
               id={menuId}
               role="dialog"
               aria-modal="true"
-              className="fixed right-4 top-20 z-50 w-[min(84vw,320px)] rounded-[28px] border border-white/15 bg-[#0A0F1B]/95 p-4 text-white shadow-[0_30px_120px_rgba(0,0,0,0.6)] backdrop-blur-2xl"
-              initial={reduceMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={reduceMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: 40 }}
+              className="fixed inset-x-4 top-20 z-50 mx-auto max-h-[calc(100vh-6.5rem)] w-[min(88vw,340px)] overflow-y-auto rounded-[28px] border border-white/15 bg-[#0A0F1B]/95 p-4 text-white shadow-[0_30px_120px_rgba(0,0,0,0.6)] backdrop-blur-2xl"
+              initial={reduceMotion ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: -10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={reduceMotion ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: -8, scale: 0.98 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
               <div className="flex items-center justify-between">
@@ -225,7 +225,7 @@ export function ComingSoonHeader({
                 <button
                   type="button"
                   onClick={() => setMenuOpen(false)}
-                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70 transition hover:border-white/30 hover:bg-white/10"
+                  className="cs-hover-smooth rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70 transition hover:border-white/30 hover:bg-white/10"
                 >
                   بستن
                 </button>
@@ -238,7 +238,7 @@ export function ComingSoonHeader({
               <Link
                 href={ctaHref}
                 onClick={() => setMenuOpen(false)}
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black transition hover:translate-y-[-1px]"
+                className="cs-hover-smooth mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-black transition hover:translate-y-[-1px]"
               >
                 {ctaLabel}
                 <ArrowLeft className="h-4 w-4 text-black/50" />
@@ -265,7 +265,7 @@ function HeaderNavLink({ item, pathname }: { item: NavItem; pathname: string | n
     <Link
       href={item.href}
       className={cn(
-        "rounded-full border px-3 py-1 transition",
+        "cs-hover-smooth rounded-full border px-3 py-1 transition",
         active
           ? "border-[#7EB3CC]/50 bg-[#7EB3CC]/15 text-white ring-1 ring-[#7EB3CC]/30"
           : "border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10"
@@ -292,7 +292,7 @@ function HeaderMenuLink({
       href={item.href}
       onClick={onClick}
       className={cn(
-        "rounded-2xl border px-4 py-2 text-sm transition",
+        "cs-hover-smooth rounded-2xl border px-4 py-2 text-sm transition",
         active
           ? "border-[#7EB3CC]/45 bg-[#7EB3CC]/12 text-white"
           : "border-white/10 bg-white/5 text-white/80 hover:border-white/30 hover:bg-white/10"
@@ -322,7 +322,7 @@ function MenuButton({
     <button
       type="button"
       className={cn(
-        "group inline-flex items-center justify-center rounded-full border border-white/12 bg-white/5 px-3 transition hover:border-white/30 hover:bg-white/10",
+        "cs-hover-smooth group inline-flex items-center justify-center rounded-full border border-white/12 bg-white/5 px-3 transition hover:border-white/30 hover:bg-white/10",
         compact ? "py-1.5" : "py-2"
       )}
       aria-expanded={open}

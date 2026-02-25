@@ -54,10 +54,10 @@ export function WaitlistCard() {
         </p>
         <span
           className={cn(
-            "mt-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs transition",
+            "cs-hover-smooth mt-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs transition",
             open
               ? "border-white/10 bg-white/5 text-white/70"
-              : "border-[#7EB3CC]/40 bg-gradient-to-l from-[#7EB3CC] via-[#A6D5E8] to-[#CBEAF6] text-[#050913] shadow-[0_18px_60px_rgba(126,179,204,0.35)] group-hover:brightness-105"
+              : "border-[#7EB3CC]/40 bg-gradient-to-l from-[#7EB3CC] via-[#A6D5E8] to-[#CBEAF6] text-[#050913] shadow-[0_18px_60px_rgba(126,179,204,0.35)]"
           )}
         >
           {!open && (

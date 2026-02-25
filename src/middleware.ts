@@ -4,6 +4,7 @@ import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "@/lib/admin-session"
 
 const APP_ACCESS_COOKIE_NAME = "app_access";
 const APP_ACCESS_PATH = "/coming-soon/access";
+const COMING_SOON_PATH = "/coming-soon";
 const PUBLIC_FILE_REGEX = /\.(?:png|jpg|jpeg|svg|webp|gif|ico|css|js|map|txt|xml|json|woff2?|ttf|otf)$/i;
 const LAUNCH_CACHE_TTL_MS = 5000;
 let launchCache: { value: { isLive: boolean }; expiresAt: number } | null = null;
@@ -59,6 +60,10 @@ export async function middleware(req: NextRequest) {
 
   if (pathname.startsWith("/coming-soon")) {
     return NextResponse.next();
+  }
+
+  if (isComingSoonLockEnabled()) {
+    return NextResponse.redirect(new URL(COMING_SOON_PATH, req.url));
   }
 
   if (pathname.startsWith("/pharmacy-portal")) {
@@ -192,6 +197,10 @@ function hasAdminEnv() {
 
 function isServerDownEnabled() {
   return (process.env.SERVER_DOWN_MODE ?? "true").toLowerCase() === "true";
+}
+
+function isComingSoonLockEnabled() {
+  return (process.env.APP_COMING_SOON_MODE ?? "true").toLowerCase() === "true";
 }
 
 async function getLaunchState(req: NextRequest) {

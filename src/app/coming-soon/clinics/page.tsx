@@ -113,13 +113,13 @@ export default function ClinicRegisterPage() {
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
               <a
                 href="#register"
-                className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-[#050913] shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition hover:translate-y-[-1px]"
+                className="cs-hover-smooth inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-[#050913] shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition hover:translate-y-[-1px]"
               >
                 شروع ثبت درخواست همکاری
               </a>
               <a
                 href="#flow"
-                className="inline-flex items-center justify-center rounded-2xl border border-white/12 bg-white/5 px-6 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10"
+                className="cs-hover-smooth inline-flex items-center justify-center rounded-2xl border border-white/12 bg-white/5 px-6 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10"
               >
                 مشاهده مسیر همکاری
               </a>

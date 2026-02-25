@@ -51,7 +51,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
         <button
           type="submit"
           disabled={!emailIsValid || submitting}
-          className="h-12 rounded-2xl bg-white px-5 text-sm font-semibold text-black transition hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+          className="cs-hover-smooth h-12 rounded-2xl bg-white px-5 text-sm font-semibold text-black transition hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
         >
           {submitting ? "در حال ثبت..." : "ثبت"}
         </button>

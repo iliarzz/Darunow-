@@ -59,14 +59,14 @@ export default function ComingSoonPage() {
             <div className="flex flex-wrap items-center justify-center gap-3">
               <a
                 href="#waitlist"
-                className="group inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-black shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition will-change-transform hover:translate-y-[-1px] active:translate-y-0"
+                className="cs-hover-smooth group inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-black shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition will-change-transform hover:translate-y-[-1px] active:translate-y-0"
               >
                 عضویت در لیست انتظار
                 <ArrowLeft className="mr-2 h-4 w-4 text-black/55 transition group-hover:-translate-x-0.5" />
               </a>
               <Link
                 href="/"
-                className="inline-flex items-center justify-center rounded-2xl border border-white/12 bg-white/5 px-6 py-3 text-sm font-semibold text-white/90 backdrop-blur transition hover:bg-white/8"
+                className="cs-hover-smooth inline-flex items-center justify-center rounded-2xl border border-white/12 bg-white/5 px-6 py-3 text-sm font-semibold text-white/90 backdrop-blur transition hover:bg-white/8"
               >
                 بازگشت به وب‌اپ
               </Link>
@@ -146,7 +146,7 @@ export default function ComingSoonPage() {
                     </div>
                   </div>
 
-                  <Link href="/coming-soon" className="mt-6 inline-flex items-center gap-3 transition hover:opacity-90">
+                  <Link href="/coming-soon" className="cs-hover-smooth mt-6 inline-flex items-center gap-3 transition hover:opacity-90">
                     <div className="relative h-12 w-12 overflow-hidden rounded-3xl bg-white/5 ring-1 ring-white/10">
                       <Image
                         src="/brand/Darunow_1_logo.png"

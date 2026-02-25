@@ -32,13 +32,13 @@ export default function PharmacyRegisterSuccessPage() {
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <Link
                 href="/coming-soon/pharmacies"
-                className="inline-flex items-center justify-center rounded-2xl border border-white/12 bg-white/5 px-5 py-2 text-sm font-semibold text-white/90 transition hover:bg-white/10"
+                className="cs-hover-smooth inline-flex items-center justify-center rounded-2xl border border-white/12 bg-white/5 px-5 py-2 text-sm font-semibold text-white/90 transition hover:bg-white/10"
               >
                 بازگشت به فرم
               </Link>
               <Link
                 href="/coming-soon"
-                className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-2 text-sm font-semibold text-[#050913] shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition hover:translate-y-[-1px]"
+                className="cs-hover-smooth inline-flex items-center justify-center rounded-2xl bg-white px-5 py-2 text-sm font-semibold text-[#050913] shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition hover:translate-y-[-1px]"
               >
                 بازگشت به دارونَو
               </Link>

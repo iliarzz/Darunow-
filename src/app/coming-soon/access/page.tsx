@@ -78,7 +78,7 @@ function AccessForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-semibold text-[#050913] shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-70"
+                className="cs-hover-smooth inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-semibold text-[#050913] shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition hover:translate-y-[-1px] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <KeyRound className="h-4 w-4" />
                 {loading ? "در حال بررسی..." : "ورود"}

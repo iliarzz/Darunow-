@@ -270,7 +270,7 @@ export function ClinicRegistrationForm() {
       <button
         type="submit"
         disabled={!isFormValid}
-        className="h-12 w-full rounded-2xl bg-white px-5 text-sm font-semibold text-[#050913] shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+        className="cs-hover-smooth h-12 w-full rounded-2xl bg-white px-5 text-sm font-semibold text-[#050913] shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition hover:translate-y-[-1px] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
       >
         ثبت درخواست همکاری
       </button>
@@ -339,7 +339,7 @@ export function ClinicRegistrationCard() {
                   <button
                     type="button"
                     onClick={() => setView("form")}
-                    className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-2 text-sm font-semibold text-[#050913] shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition hover:translate-y-[-1px]"
+                    className="cs-hover-smooth inline-flex items-center justify-center rounded-2xl bg-white px-5 py-2 text-sm font-semibold text-[#050913] shadow-[0_18px_60px_rgba(255,255,255,0.18)] transition hover:translate-y-[-1px]"
                   >
                     شروع ثبت درخواست همکاری
                   </button>
@@ -365,7 +365,7 @@ export function ClinicRegistrationCard() {
                     <button
                       type="button"
                       onClick={() => setView("intro")}
-                      className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/60 transition hover:border-white/25 hover:text-white/80"
+                      className="cs-hover-smooth rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/60 transition hover:border-white/25 hover:text-white/80"
                     >
                       بازگشت
                     </button>

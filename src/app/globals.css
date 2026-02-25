@@ -39,8 +39,15 @@ body {
 }
 
 ::selection {
-  background: rgba(120, 177, 204, 0.2);
-  color: var(--primary-900);
+  background: rgba(126, 179, 204, 0.45);
+  color: #06111d;
+}
+
+input::selection,
+textarea::selection {
+  background: rgba(126, 179, 204, 0.6);
+  color: #06111d;
+  -webkit-text-fill-color: #06111d;
 }
 
 @layer base {
@@ -167,6 +174,17 @@ body {
     padding-top: 56px;
     padding-bottom: 56px;
   }
+  .cs-hover-smooth {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    will-change: transform;
+    transition-property: transform, background-color, border-color, color, box-shadow, opacity !important;
+    transition-duration: 180ms !important;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+  }
+  .cs-hover-smooth:active {
+    transform: translate3d(0, 0, 0);
+  }
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -227,6 +245,11 @@ body {
   .animate-floatSlower,
   .light-sweep {
     animation: none !important;
+  }
+
+  .cs-hover-smooth {
+    transition: none !important;
+    transform: none !important;
   }
 }
 

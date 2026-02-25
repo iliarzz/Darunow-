@@ -374,7 +374,7 @@ export default function ComingSoonAdminPage() {
           <button
             type="button"
             onClick={handleLogout}
-            className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-xs text-white/80 transition hover:border-white/30 hover:bg-white/10"
+            className="cs-hover-smooth inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-xs text-white/80 transition hover:border-white/30 hover:bg-white/10"
           >
             خروج
             <LogOut className="h-4 w-4 text-white/60" />
@@ -382,7 +382,7 @@ export default function ComingSoonAdminPage() {
           <button
             type="button"
             onClick={refreshItems}
-            className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-xs text-white/80 transition hover:border-white/30 hover:bg-white/10"
+            className="cs-hover-smooth inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/5 px-4 py-2 text-xs text-white/80 transition hover:border-white/30 hover:bg-white/10"
           >
             بروزرسانی
             <RefreshCw className="h-4 w-4 text-white/60" />
@@ -642,7 +642,7 @@ export default function ComingSoonAdminPage() {
                 <div className="flex flex-wrap items-center gap-3">
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-2 text-xs font-semibold text-[#050913] transition hover:translate-y-[-1px]"
+                    className="cs-hover-smooth inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-2 text-xs font-semibold text-[#050913] transition hover:translate-y-[-1px]"
                   >
                     ایجاد درخواست
                     <Plus className="h-4 w-4" />
@@ -653,7 +653,7 @@ export default function ComingSoonAdminPage() {
                       setNewEntry(createDefaultEntry());
                       setNewErrors({});
                     }}
-                    className="inline-flex items-center gap-2 rounded-2xl border border-white/12 bg-white/5 px-4 py-2 text-xs text-white/70 transition hover:border-white/30"
+                    className="cs-hover-smooth inline-flex items-center gap-2 rounded-2xl border border-white/12 bg-white/5 px-4 py-2 text-xs text-white/70 transition hover:border-white/30"
                   >
                     پاکسازی فرم
                   </button>
@@ -666,7 +666,7 @@ export default function ComingSoonAdminPage() {
             <button
               type="button"
               onClick={toggleSelectAll}
-              className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs text-white/70 transition hover:border-white/30"
+              className="cs-hover-smooth rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs text-white/70 transition hover:border-white/30"
             >
               {allSelected ? "حذف انتخاب همه" : "انتخاب همه نتایج"}
             </button>
@@ -780,7 +780,7 @@ export default function ComingSoonAdminPage() {
                             <button
                               type="button"
                               onClick={() => handleNoteSave(item.id)}
-                              className="rounded-full border border-white/12 bg-white/5 px-3 py-1 text-xs text-white/70 transition hover:border-white/30"
+                              className="cs-hover-smooth rounded-full border border-white/12 bg-white/5 px-3 py-1 text-xs text-white/70 transition hover:border-white/30"
                             >
                               ذخیره یادداشت
                             </button>
@@ -854,7 +854,7 @@ function ActionButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold transition",
+        "cs-hover-smooth inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold transition",
         tones[tone],
         disabled ? "cursor-not-allowed opacity-40" : ""
       )}

@@ -337,7 +337,7 @@ export default function VisionPage() {
               </p>
               <Link
                 href="/coming-soon"
-                className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:translate-y-[-1px]"
+                className="cs-hover-smooth mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:translate-y-[-1px]"
               >
                 بازگشت به به‌زودی
                 <ArrowLeft className="h-4 w-4 text-black/60" />
