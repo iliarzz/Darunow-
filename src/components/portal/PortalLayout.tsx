@@ -150,9 +150,9 @@ export function PortalLayout({
               <div className="flex items-center justify-between gap-2 rounded-xl bg-surface-2/90 px-2 py-2">
                 {!collapsed && (
                   <div className="space-y-[2px]">
-                    <p className="text-[12px] text-muted">پرتال داروخانه</p>
-                    <p className="truncate text-sm font-semibold text-primary-900">{pharmacyName}</p>
-                    <Badge variant="outline" className="w-fit rounded-full px-2 py-[4px] text-[11px]">
+                    <p className="text-[11px] text-muted">پرتال داروخانه</p>
+                    <p className="truncate text-[13px] font-semibold text-primary-900">{pharmacyName}</p>
+                    <Badge variant="outline" className="w-fit rounded-full px-2 py-[3px] text-[10px]">
                       کد: {pharmacyId}
                     </Badge>
                   </div>
@@ -192,7 +192,7 @@ export function PortalLayout({
             </div>
 
             <div className={cn("flex items-center gap-2 rounded-xl border border-divider px-3 py-2", collapsed && "justify-center px-2")}>
-              <Badge variant="neutral" className="rounded-full px-2 py-[4px] text-[11px]">
+              <Badge variant="neutral" className="rounded-full px-2 py-[3px] text-[10px]">
                 نقش: {role}
               </Badge>
               {!collapsed && onLogout && (
@@ -205,24 +205,24 @@ export function PortalLayout({
         </aside>
         <main className="flex-1 space-y-4">
           <header className="sticky top-3 z-40">
-            <Card className="flex flex-col gap-3 rounded-2xl border border-divider/80 bg-surface-1/95 px-4 py-3 shadow-soft backdrop-blur">
+            <Card className="flex flex-col gap-3 rounded-2xl border border-divider/80 bg-surface-1/95 px-4 py-3.5 shadow-soft backdrop-blur md:px-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="grid h-12 w-12 place-items-center rounded-2xl bg-accent-200/70 text-lg font-bold text-primary-900">
+                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-accent-200/70 text-base font-bold text-primary-900">
                     {initials}
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs text-muted">پرتال داروخانه</p>
+                    <p className="text-[11px] text-muted">پرتال داروخانه</p>
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-xl font-semibold text-primary-900">{pharmacyName}</p>
-                      <Badge variant="outline" className="rounded-full px-2 py-[4px] text-[11px]">
+                      <p className="text-lg font-semibold text-primary-900 lg:text-[20px]">{pharmacyName}</p>
+                      <Badge variant="outline" className="rounded-full px-2.5 py-[3px] text-[10px]">
                         کد: {pharmacyId}
                       </Badge>
-                      <Badge variant="neutral" className="rounded-full px-2 py-[4px] text-[11px]">
+                      <Badge variant="neutral" className="rounded-full px-2.5 py-[3px] text-[10px]">
                         نقش: {role}
                       </Badge>
                     </div>
-                    <p className="text-[12px] text-muted">دسترسی سریع به سفارش، موجودی و پشتیبانی</p>
+                    <p className="text-[11px] leading-5 text-muted">دسترسی سریع به سفارش، موجودی و پشتیبانی</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -230,7 +230,7 @@ export function PortalLayout({
                     variant={online ? "secondary" : "ghost"}
                     size="sm"
                     className={cn(
-                      "rounded-full px-3 text-[12px]",
+                      "h-9 rounded-full px-3.5 text-[11.5px]",
                       online ? "text-success-800 shadow-none" : "text-muted hover:text-primary-900",
                     )}
                     onClick={() => setOnline((v) => !v)}
@@ -245,7 +245,7 @@ export function PortalLayout({
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="rounded-full px-3 text-[12px]"
+                    className="h-9 rounded-full px-3.5 text-[11.5px]"
                     onClick={() => setPaletteOpen(true)}
                     title="Command Palette"
                   >
@@ -253,7 +253,7 @@ export function PortalLayout({
                     ⌘K
                   </Button>
                   {onLogout && (
-                    <Button variant="ghost" size="sm" className="rounded-full px-3 text-[12px]" onClick={onLogout}>
+                    <Button variant="ghost" size="sm" className="h-9 rounded-full px-3.5 text-[11.5px]" onClick={onLogout}>
                       خروج
                     </Button>
                   )}
@@ -265,7 +265,7 @@ export function PortalLayout({
                     e.preventDefault();
                     handleSearch();
                   }}
-                  className="relative flex min-w-[260px] flex-1 items-center gap-2 rounded-2xl border border-divider bg-surface-2 px-3 py-2 shadow-inner"
+                  className="relative flex min-w-[260px] flex-1 items-center gap-2 rounded-2xl border border-divider bg-surface-2 px-3 py-2.5 shadow-inner"
                 >
                   <Search className="h-4 w-4 text-muted" />
                   <Input
@@ -273,15 +273,15 @@ export function PortalLayout({
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="جستجوی سفارش، مشتری یا کالا (کلید /)"
-                    className="h-8 flex-1 border-none bg-transparent px-0 text-[13px] shadow-none focus-visible:ring-0"
+                    className="h-9 flex-1 border-none bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
                     data-portal-search
                   />
                   {search && (
-                    <Button variant="ghost" size="sm" className="h-8 rounded-full px-2 text-[12px]" type="button" onClick={() => setSearch("")}>
+                    <Button variant="ghost" size="sm" className="h-8 rounded-full px-2 text-[11px]" type="button" onClick={() => setSearch("")}>
                       پاکسازی
                     </Button>
                   )}
-                  <Button type="submit" size="sm" className="h-8 rounded-full px-3 text-[12px]">
+                  <Button type="submit" size="sm" className="h-9 rounded-full px-4 text-[11.5px]">
                     جستجو
                   </Button>
                 </form>

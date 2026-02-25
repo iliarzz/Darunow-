@@ -62,6 +62,35 @@ export function addSubstitution(orderId: string, proposal: Omit<SubstitutionProp
   });
 }
 
+export function reviewPrescription(
+  orderId: string,
+  reviewStatus: Exclude<NonNullable<Order["prescription"]>["reviewStatus"], undefined>,
+  options?: { note?: string; reviewedBy?: string },
+): Order | undefined {
+  return updateOrder(orderId, (order) => {
+    const existingRx = order.prescription ?? { id: `rx-${order.id}`, imageUrls: [] };
+    let nextStatus = order.status;
+    if (reviewStatus === "APPROVED" && order.status === "PHARMACY_REVIEW") {
+      assertValidTransition(order.status, "PHARMACY_ACCEPTED");
+      nextStatus = "PHARMACY_ACCEPTED";
+    } else if (reviewStatus === "REJECTED" && order.status === "PHARMACY_REVIEW") {
+      assertValidTransition(order.status, "PHARMACY_REJECTED");
+      nextStatus = "PHARMACY_REJECTED";
+    }
+    return {
+      ...order,
+      status: nextStatus,
+      internalNote: options?.note ?? order.internalNote,
+      prescription: {
+        ...existingRx,
+        reviewStatus,
+        reviewedAt: Date.now(),
+        reviewedBy: options?.reviewedBy ?? existingRx.reviewedBy,
+      },
+    };
+  });
+}
+
 export function removeSubstitution(orderId: string, substitutionId: string): Order | undefined {
   return updateOrder(orderId, (order) => {
     const next = order.substitutions?.filter((sub) => sub.id !== substitutionId) ?? [];
